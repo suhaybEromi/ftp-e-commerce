@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 const validate = schema => (req, res, next) => {
   const result = schema.safeParse({
     body: req.body ?? {},

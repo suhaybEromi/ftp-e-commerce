@@ -1,7 +1,8 @@
 import Brand from "../models/brand.js";
 import { deleteFile } from "../utils/deleteFile.js";
 
-const getBrand = async (req, res, next) => {
+// Functionality Fetch Brand
+const getBrand = async (req, res) => {
   const brands = await Brand.find().sort({ createdAt: -1 });
 
   return res.status(200).json({
@@ -11,24 +12,26 @@ const getBrand = async (req, res, next) => {
   });
 };
 
-const addBrand = async (req, res, next) => {
-  const { name, isActive } = req.body;
+// Functionality Add Brand
+const addBrand = async (req, res) => {
+  const { name, isActive } = req.validated.body;
 
+  // Validate file
   if (!req.file) {
-    return res.status(400).json({
-      message: "Brand image is required",
-    });
+    const err = new Error("Brand image is required");
+    err.statusCode = 400;
+    throw err;
   }
 
+  // Name file path
   const fileName = req.file.filename;
   const imagePath = `/uploads/brands/${fileName}`;
   const imageKey = `brands/${fileName}`;
 
-  const parsedIsActive =
-    typeof isActive === "undefined"
-      ? true
-      : isActive === true || isActive === "true";
+  // Validate isActive, if type undefined chnage to true or isActive
+  const parsedIsActive = typeof isActive === "undefined" ? true : isActive;
 
+  // Create brand
   const brand = await Brand.create({
     name,
     images: [{ url: imagePath, key: imageKey }],
@@ -42,18 +45,22 @@ const addBrand = async (req, res, next) => {
   });
 };
 
-const updateBrand = async (req, res, next) => {
-  const { id } = req.params;
-  const { name, isActive } = req.body;
+// Functionality Update Brand
+const updateBrand = async (req, res) => {
+  const { id } = req.validated.params;
+  const { name, isActive } = req.validated.body;
 
+  // Find brand by id
   const brand = await Brand.findById(id);
 
+  // There is a brand or there is not
   if (!brand) {
-    return res.status(404).json({
-      message: "Brand not found",
-    });
+    const err = new Error("Brand not found");
+    err.statusCode = 404;
+    throw err;
   }
 
+  // Validate name undefined or not
   if (name !== undefined) {
     brand.name = {
       en: name.en ?? brand.name.en,
@@ -62,24 +69,25 @@ const updateBrand = async (req, res, next) => {
     };
   }
 
+  // Validate isActice undefined or not
   if (typeof isActive !== "undefined") {
-    brand.isActive = isActive === true || isActive === "true";
+    brand.isActive = isActive;
   }
 
+  // Check file.
   if (req.file) {
+    // Old image
     const oldImage = brand.images?.[0]?.url;
 
+    // Name file path and new image
     const fileName = req.file.filename;
     const newImagePath = `/uploads/brands/${fileName}`;
     const newImageKey = `brands/${fileName}`;
 
-    brand.images = [
-      {
-        url: newImagePath,
-        key: newImageKey,
-      },
-    ];
+    // Send image
+    brand.images = [{ url: newImagePath, key: newImageKey }];
 
+    // Delete old image if insert new image
     if (oldImage) {
       deleteFile(oldImage);
     }
@@ -94,19 +102,24 @@ const updateBrand = async (req, res, next) => {
   });
 };
 
-const deleteBrand = async (req, res, next) => {
-  const { id } = req.params;
+// Functionality Delete Brand
+const deleteBrand = async (req, res) => {
+  const { id } = req.validated.params;
 
+  // Find brand by id
   const brand = await Brand.findById(id);
 
+  // There is a brand or there is not brand
   if (!brand) {
-    return res.status(404).json({
-      message: "Brand not found",
-    });
+    const err = new Error("Brand not found");
+    err.statusCode = 404;
+    throw err;
   }
 
+  // Old image
   const oldImage = brand.images?.[0]?.url;
 
+  // Delete old image
   if (oldImage) {
     deleteFile(oldImage);
   }

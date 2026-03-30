@@ -6,6 +6,7 @@ const ACCEPTED_IMAGE_TYPES = [
   "image/jpg",
   "image/png",
   "image/webp",
+  "image/jfif",
 ];
 
 const translatedNameSchema = z.object({
@@ -37,13 +38,13 @@ export const createBrandSchema = z.object({
     )
     .refine(
       file => !file || ACCEPTED_IMAGE_TYPES.includes(file.type),
-      "Only jpg, jpeg, png, and webp files are allowed",
+      "Only jpg, jpeg, png, and webp and jfif files are allowed",
     ),
   isActive: z.boolean().optional(),
 });
 
 export const updateBrandSchema = z.object({
-  name: translatedNameSchema,
+  name: translatedNameSchema.partial().optional(),
   brandImage: z
     .any()
     .optional()
@@ -54,7 +55,7 @@ export const updateBrandSchema = z.object({
     )
     .refine(
       file => !file || ACCEPTED_IMAGE_TYPES.includes(file.type),
-      "Only jpg, jpeg, png, and webp files are allowed",
+      "Only jpg, jpeg, png, and webp and jfif files are allowed",
     ),
   isActive: z.boolean().optional(),
 });

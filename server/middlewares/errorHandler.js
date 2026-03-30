@@ -42,6 +42,13 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
+  // Status code
+  if (err.statusCode) {
+    return res
+      .status(err.statusCode)
+      .json({ success: false, message: err.message });
+  }
+
   // Mongoose cast error
   if (err.name === "CastError") {
     return res.status(400).json({
@@ -52,7 +59,10 @@ const errorHandler = (err, req, res, next) => {
 
   return res.status(500).json({
     success: false,
-    message: err.message || "Internal server error",
+    message:
+      process.env.NODE_ENV === "production"
+        ? "Internal server error"
+        : err.message,
   });
 };
 

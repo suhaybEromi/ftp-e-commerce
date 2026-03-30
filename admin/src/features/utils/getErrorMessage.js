@@ -3,8 +3,8 @@ export const getErrorMessage = error => {
 
   if (!data) return "Something went wrong";
 
-  if (data.message) return data.message;
-
+  // Check field errors first, then message:
+  // 1- This check field errors
   const fieldErrors = data?.errors?.fieldErrors;
   if (fieldErrors) {
     const firstKey = Object.keys(fieldErrors)[0];
@@ -12,5 +12,8 @@ export const getErrorMessage = error => {
       return fieldErrors[firstKey][0];
     }
   }
+
+  // 2- This check message errors(general).
+  if (data.message) return data.message;
   return "Something went wrong";
 };

@@ -15,9 +15,10 @@ export default function BrandPage() {
   const [open, setOpen] = useState(false);
   const [activeLang, setActiveLang] = useState("en");
   const [loading, setLoading] = useState(false);
-  const [brands, setBrands] = useState([]);
+  const [brands, setBrands] = useState(null);
   const [editingBrand, setEditingBrand] = useState(null);
 
+  // Fetch functionality.
   const fetchBrands = async () => {
     try {
       const res = await getBrands();
@@ -31,27 +32,44 @@ export default function BrandPage() {
     fetchBrands();
   }, []);
 
+  // Add and Update functionality.
   const handleSave = async values => {
     try {
       setLoading(true);
 
       const formData = new FormData();
 
+      // Get data.
       formData.append("name[en]", values.name.en);
       formData.append("name[ar]", values.name.ar);
       formData.append("name[ku]", values.name.ku);
       formData.append("isActive", String(values.isActive));
-
       if (values.brandImage) {
         formData.append("brandImage", values.brandImage);
       }
 
+      // Editing data, first way
       if (editingBrand?._id) {
-        const res = await updateBrand(editingBrand?._id, formData);
-        toast.success(res.message || "Brand updated successfully");
+        await toast.promise(updateBrand(editingBrand?._id, formData), {
+          loading: "Updating brand...",
+          success: "Brand updated successfully",
+          error: err => getErrorMessage(err),
+        });
+
+        // Editing data, second way
+        // const res = await updateBrand(editingBrand?._id, formData);
+        // toast.success(res.message || "Brand updated successfully");
       } else {
-        const res = await createBrand(formData);
-        toast.success(res.message || "Brand created successfully");
+        // Added data,(first way)
+        await toast.promise(createBrand(formData), {
+          loading: "Create brand...",
+          success: "Brand added successfully",
+          error: err => getErrorMessage(err),
+        });
+
+        // Second Way
+        // const res = await createBrand(formData);
+        // toast.success(res.message || "Brand created successfully");
       }
       await fetchBrands();
       handleCloseModal();
@@ -62,6 +80,7 @@ export default function BrandPage() {
     }
   };
 
+  // If click edit button display data inside input.
   const handleEdit = brand => {
     setEditingBrand({
       _id: brand._id,
@@ -79,7 +98,7 @@ export default function BrandPage() {
     setOpen(true);
   };
 
-  // Delete functionality success
+  // Delete functionality
   const handleDelete = async id => {
     const ok = window.confirm("Ae you sure you want to delete this brand?");
     if (!ok) return;
@@ -97,11 +116,13 @@ export default function BrandPage() {
     }
   };
 
+  // Close model functionality
   const handleCloseModal = () => {
     setOpen(false);
     setEditingBrand(null);
   };
 
+  // Open modal functionality.
   const handleOpenCreate = () => {
     setEditingBrand(null);
     setOpen(true);

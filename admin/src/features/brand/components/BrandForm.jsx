@@ -30,15 +30,13 @@ const BrandForm = ({
   });
 
   useEffect(() => {
-    reset(
-      initialValues || {
-        ...brandDefaultValues,
-        brandImage: undefined,
-      },
-    );
+    reset(initialValues || { ...brandDefaultValues, brandImage: undefined });
   }, [initialValues, reset]);
 
   const imageFile = watch("brandImage");
+
+  const previewUrl =
+    imageFile instanceof File ? URL.createObjectURL(imageFile) : null;
 
   const isRTL = activeLang === "ar" || activeLang === "ku";
 
@@ -144,15 +142,16 @@ const BrandForm = ({
               </div>
 
               {imageFile instanceof File && (
-                <p className="text-xs text-slate-300">
-                  Selected: {imageFile.name}
+                <p className="flex text-xs text-slate-300">
+                  Selected:
+                  <span className="text-green-500 ms-1">{imageFile.name}</span>
                 </p>
               )}
             </div>
 
             <input
               type="file"
-              accept="image/png,image/jpeg,image/jpg,image/webp"
+              accept="image/png,image/jpeg,image/jpg,image/webp,image/jfif"
               className="hidden"
               onChange={e => {
                 const file = e.target.files?.[0];
@@ -167,6 +166,17 @@ const BrandForm = ({
             </p>
           )}
 
+          {/* NOTE If upload image display image(for add). */}
+          {previewUrl && (
+            <div className="my-4">
+              <img
+                className="w-45 h-45 object-contain border rounded-full border-slate-700"
+                src={previewUrl}
+              />
+            </div>
+          )}
+
+          {/* NOTE If upload image display image(for edit). */}
           {isEdit && initialValues?.previewImage && !imageFile && (
             <div className="mt-4">
               <p className="mb-2 text-sm text-slate-400">Current image</p>
