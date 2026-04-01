@@ -1,7 +1,7 @@
 const brandLocale = {
   title: "Brands",
-  addTitle: "Add Brand",
-  editTitle: "Edit Brand",
+  addTitleBrand: "Add Brand",
+  editTitleBrand: "Edit Brand",
   empty: "No brands found",
   fields: {
     nameEn: "Name (English)",
@@ -13,8 +13,6 @@ const brandLocale = {
   actions: {
     create: "Create Brand",
     update: "Update Brand",
-    edit: "Edit",
-    delete: "Delete",
     cancel: "Cancel Edit",
   },
   messages: {

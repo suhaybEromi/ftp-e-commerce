@@ -5,7 +5,8 @@ import {
   zTranslatedName,
 } from "./common.validation.js";
 
-// NOTE .strict() .If there are any unknown keys in the input, Zod will throw an error(ئەگەر هەر کلیلێکی نەناسراو لە ئینپوتەکەدا هەبێت، زۆد هەڵەیەک فڕێدەدات.).
+// NOTE .strict() .If there are any unknown keys in the input, Zod will throw an error()
+// NOTE ئەگەر هەر کلیلێکی نەناسراو لە ئینپوتەکەدا هەبێت، زۆد هەڵەیەک فڕێدەدات
 
 export const createBrandSchema = z.object({
   body: z

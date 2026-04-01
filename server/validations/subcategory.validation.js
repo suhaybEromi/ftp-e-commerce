@@ -1,12 +1,18 @@
 import { z } from "zod";
-import { zObjectId, zTranslatedName } from "./common.validation.js";
+import {
+  zBooleanFromFormData,
+  zObjectId,
+  zTranslatedName,
+} from "./common.validation.js";
 
 export const createSubCategorySchema = z.object({
-  body: z.object({
-    name: zTranslatedName,
-    category: zObjectId("category"),
-    isActive: z.boolean().optional(),
-  }),
+  body: z
+    .object({
+      name: zTranslatedName,
+      category: zObjectId("category"),
+      isActive: zBooleanFromFormData,
+    })
+    .strict(),
   params: z.object({}),
   query: z.object({}),
 });
@@ -16,11 +22,16 @@ export const updateSubCategorySchema = z.object({
     .object({
       name: zTranslatedName.partial().optional(),
       category: zObjectId("category").optional(),
-      isActive: z.boolean().optional(),
+      isActive: zBooleanFromFormData,
     })
-    .refine(data => Object.keys(data).length > 0, {
-      message: "At least one field is required for update",
-    }),
+    .strict()
+    .refine(
+      data =>
+        data.isActive !== undefined ||
+        data.category !== undefined ||
+        (data.name && Object.keys(data.name).length > 0),
+      { message: "At least one field is required for update" },
+    ),
   params: z.object({
     id: zObjectId("subCategory id"),
   }),

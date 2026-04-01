@@ -1,8 +1,10 @@
 import Category from "../models/category.js";
 import { deleteFile } from "../utils/deleteFile.js";
 
-const getCategory = async (req, res, next) => {
+// Functionality Fetch Category
+const getCategory = async (req, res) => {
   const category = await Category.find().sort({ createdAt: -1 });
+
   return res.status(200).json({
     success: true,
     message: "Category fetched successfully",
@@ -10,43 +12,56 @@ const getCategory = async (req, res, next) => {
   });
 };
 
-const addCategory = async (req, res, next) => {
+// Functionality Add Category
+const addCategory = async (req, res) => {
   const { name, isActive } = req.validated.body;
 
+  // Validate file
   if (!req.file) {
-    return res.status(400).json({
-      success: false,
-      message: "Category image is required",
-    });
+    const err = new Error("Category image is required");
+    err.statusCode = 400;
+    throw err;
   }
 
+  // Name file path
   const fileName = req.file.filename;
   const imagePath = `/uploads/categories/${fileName}`;
   const imageKey = `categories/${fileName}`;
 
+  // Validate isActive, if type undefined chnage to true or isActive
+  const parsedIsActive = typeof isActive === "undefined" ? true : isActive;
+
+  // Create category
   const category = await Category.create({
     name,
     images: [{ url: imagePath, key: imageKey }],
-    isActive,
+    isActive: parsedIsActive,
   });
 
-  return res
-    .status(201)
-    .json({ success: true, message: "Category added successfully", category });
+  return res.status(201).json({
+    success: true,
+    message: "Category added successfully",
+    category,
+  });
 };
 
-const updateCategory = async (req, res, next) => {
+// Functionality Update Category
+const updateCategory = async (req, res) => {
   const { id } = req.validated.params;
 
   const { name, isActive } = req.validated.body;
 
+  // Find category by id
   const category = await Category.findById(id);
 
-  if (!category)
-    return res
-      .status(404)
-      .json({ success: false, message: "Category not found" });
+  // There is a category or there is not
+  if (!category) {
+    const err = new Error("Category not found");
+    err.statusCode = 404;
+    throw err;
+  }
 
+  // Validate name undefined or not
   if (name !== undefined) {
     category.name = {
       en: name.en ?? category.name.en,
@@ -55,24 +70,25 @@ const updateCategory = async (req, res, next) => {
     };
   }
 
+  // Validate isActice undefined or not
   if (typeof isActive !== "undefined") {
-    brand.isActive = isActive;
+    category.isActive = isActive;
   }
 
+  // Check file
   if (req.file) {
+    // Old image
     const oldImage = category.images?.[0]?.url;
 
+    // Name file path and new image
     const fileName = req.file.filename;
     const newImagePath = `/uploads/categories/${fileName}`;
     const newImageKey = `categories/${fileName}`;
 
-    category.images = [
-      {
-        url: newImagePath,
-        key: newImageKey,
-      },
-    ];
+    // Send image
+    category.images = [{ url: newImagePath, key: newImageKey }];
 
+    // Delete old image if insert new image
     if (oldImage) {
       deleteFile(oldImage);
     }
@@ -87,29 +103,34 @@ const updateCategory = async (req, res, next) => {
   });
 };
 
-const deleteCategory = async (req, res, next) => {
+// Functionality Delete Category
+const deleteCategory = async (req, res) => {
   const { id } = req.validated.params;
 
+  // Find category by id
   const category = await Category.findById(id);
 
+  // There is a category or there is not category
   if (!category) {
-    return res.status(404).json({
-      success: false,
-      message: "Category not found",
-    });
+    const err = new Error("Category not found");
+    err.statusCode = 404;
+    throw err;
   }
 
+  // Old image
   const oldImage = category.images?.[0]?.url;
 
+  // Delete old image
   if (oldImage) {
     deleteFile(oldImage);
   }
 
   await Category.deleteOne({ _id: id });
 
-  return res
-    .status(200)
-    .json({ success: true, message: "Category delete successfully" });
+  return res.status(200).json({
+    success: true,
+    message: "Category delete successfully",
+  });
 };
 
 export default { getCategory, addCategory, updateCategory, deleteCategory };

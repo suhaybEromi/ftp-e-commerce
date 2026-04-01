@@ -208,7 +208,7 @@ const BrandForm = ({
           <button
             type="submit"
             disabled={loading}
-            className="rounded-2xl bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+            className="cursor-pointer rounded-2xl bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading
               ? "Saving..."

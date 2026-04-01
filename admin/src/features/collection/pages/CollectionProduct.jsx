@@ -1,32 +1,28 @@
-import { useEffect, useState } from "react";
 import DesignCard from "../../../components/card/DesignCard";
-import api from "../../services/api";
+import collectionLocale from "../locale/collection";
 
-export default function CollectionProduct() {
-  const [collections, setCollections] = useState([]);
-
-  useEffect(() => {
-    const collectionProduct = async () => {
-      try {
-        const collection = await api.get("/collection");
-        setCollections(collection.data.collections);
-      } catch (err) {
-        console.log(err);
-      }
-    };
-    collectionProduct();
-  }, []);
+export default function CollectionProduct({ collections, onEdit, onDelete }) {
+  if (collections === null) return null;
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-      {collections.map(collection => (
-        <DesignCard
-          key={collection._id}
-          name={collection.name.en}
-          // image={collection.image}
-          image={"https://images.unsplash.com/photo-1505740420928-5e560c06d30e"}
-        />
-      ))}
-    </div>
+    <>
+      {collections.length === 0 ? (
+        <p className="text-white text-center my-5 font-bold text-4xl">
+          {collectionLocale?.empty}
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {collections.map(collection => (
+            <DesignCard
+              key={collection._id}
+              name={collection.name.en}
+              image={`${import.meta.env.VITE_API_URL_IMG}${collection.images?.[0]?.url}`}
+              onEdit={() => onEdit(collection)}
+              onDelete={() => onDelete(collection._id)}
+            />
+          ))}
+        </div>
+      )}
+    </>
   );
 }

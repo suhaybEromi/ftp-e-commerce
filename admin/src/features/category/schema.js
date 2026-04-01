@@ -1,6 +1,7 @@
-import { object, z } from "zod";
+import { z } from "zod";
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024;
+
 const ACCEPTED_IMAGE_TYPES = [
   "image/jpeg",
   "image/jpg",
@@ -27,14 +28,14 @@ const translatedNameSchema = z.object({
     .max(80),
 });
 
-export const createBrandSchema = z.object({
+export const createCategorySchema = z.object({
   name: translatedNameSchema,
-  brandImage: z
+  categoryImage: z
     .any()
-    .refine(file => file instanceof File, "Brand image is required")
+    .refine(file => file instanceof File, "Category image is required")
     .refine(
       file => !file || file.size <= MAX_FILE_SIZE,
-      "Max image size is 2MB",
+      "Max image size in 2MB",
     )
     .refine(
       file => !file || ACCEPTED_IMAGE_TYPES.includes(file.type),
@@ -43,11 +44,11 @@ export const createBrandSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-export const updateBrandSchema = z
+export const updateCategorySchema = z
   .object({
     name: translatedNameSchema.partial().optional(),
 
-    brandImage: z
+    categoryImage: z
       .any()
       .optional()
       .refine(file => !file || file instanceof File, "Invalid image file")
@@ -64,19 +65,17 @@ export const updateBrandSchema = z
   .refine(
     data =>
       (data.name && Object.keys(data.name).length > 0) ||
-      !!data.brandImage ||
+      !!data.categoryImage ||
       data.isActive !== undefined,
-    {
-      message: "At least one field is required for update",
-    },
+    { message: "At least one field is required for update" },
   );
 
-export const brandDefaultValues = {
+export const categoryDefaultValues = {
   name: {
     en: "",
     ar: "",
     ku: "",
   },
-  brandImage: undefined,
+  categoryImage: undefined,
   isActive: true,
 };

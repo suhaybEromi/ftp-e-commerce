@@ -10,6 +10,7 @@ import {
 } from "../../services/brand.service";
 import toast from "react-hot-toast";
 import { getErrorMessage } from "../../utils/getErrorMessage";
+import brandLocale from "../locale/brand";
 
 export default function BrandPage() {
   const [open, setOpen] = useState(false);
@@ -23,8 +24,9 @@ export default function BrandPage() {
     try {
       const res = await getBrands();
       setBrands(res.brands || []);
-    } catch (error) {
-      toast.error(getErrorMessage(error));
+    } catch (err) {
+      toast.error(brandLocale?.messages?.fetchError || getErrorMessage(err));
+      console.error(getErrorMessage(err));
     }
   };
 
@@ -48,26 +50,26 @@ export default function BrandPage() {
         formData.append("brandImage", values.brandImage);
       }
 
-      // Editing data, first way
+      // Editing data, first way.
       if (editingBrand?._id) {
         await toast.promise(updateBrand(editingBrand?._id, formData), {
-          loading: "Updating brand...",
-          success: "Brand updated successfully",
+          loading: brandLocale?.messages?.updating,
+          success: brandLocale?.messages?.updated,
           error: err => getErrorMessage(err),
         });
 
-        // Editing data, second way
+        // Editing data, second way.
         // const res = await updateBrand(editingBrand?._id, formData);
         // toast.success(res.message || "Brand updated successfully");
       } else {
-        // Added data,(first way)
+        // Added data,(first way).
         await toast.promise(createBrand(formData), {
-          loading: "Create brand...",
-          success: "Brand added successfully",
+          loading: brandLocale?.messages?.creating,
+          success: brandLocale?.messages?.created,
           error: err => getErrorMessage(err),
         });
 
-        // Second Way
+        // Second Way.
         // const res = await createBrand(formData);
         // toast.success(res.message || "Brand created successfully");
       }
@@ -98,25 +100,25 @@ export default function BrandPage() {
     setOpen(true);
   };
 
-  // Delete functionality
+  // Delete functionality.
   const handleDelete = async id => {
-    const ok = window.confirm("Ae you sure you want to delete this brand?");
+    const ok = window.confirm("Are you sure you want to delete this brand?");
     if (!ok) return;
 
     try {
       await toast.promise(deleteBrand(id), {
-        loading: "Deleting brand...",
-        success: "Brand deleted successfully",
+        loading: brandLocale?.messages?.deleting,
+        success: brandLocale?.messages?.deleted,
         error: err => getErrorMessage(err),
       });
 
       await fetchBrands();
-    } catch (error) {
-      toast(getErrorMessage(error));
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 
-  // Close model functionality
+  // Close modal functionality.
   const handleCloseModal = () => {
     setOpen(false);
     setEditingBrand(null);
@@ -135,19 +137,22 @@ export default function BrandPage() {
           onClick={handleOpenCreate}
           className="bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-100 cursor-pointer"
         >
-          Add Brand
+          {brandLocale?.addTitleBrand}
         </button>
 
         <ModalDesign
           open={open}
           onClose={handleCloseModal}
-          title={editingBrand ? "Edit Brand" : "Add Brand"}
+          title={
+            editingBrand
+              ? brandLocale?.editTitleBrand
+              : brandLocale?.addTitleBrand
+          }
           size="md"
         >
           <BrandForm
             initialValues={editingBrand}
             activeLang={activeLang}
-            setActiveLang={setActiveLang}
             onSubmit={handleSave}
             loading={loading}
             isEdit={!!editingBrand}
@@ -156,7 +161,7 @@ export default function BrandPage() {
         </ModalDesign>
       </div>
 
-      {/* Display brand product */}
+      {/* Display brand product. */}
       <div className="my-7">
         <BrandProduct
           brands={brands}

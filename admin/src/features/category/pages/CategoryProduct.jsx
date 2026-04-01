@@ -1,32 +1,27 @@
 import DesignCard from "../../../components/card/DesignCard";
-import { useEffect, useState } from "react";
-import api from "../../services/api";
-
-export default function CategoryProduct() {
-  const [categories, setCategories] = useState([]);
-
-  useEffect(() => {
-    const categoryProduct = async () => {
-      try {
-        const categories = await api.get("/category");
-        setCategories(categories.data.category);
-      } catch (err) {
-        console.log(err);
-      }
-    };
-    categoryProduct();
-  }, []);
+import categoryLocale from "../locale/category";
+export default function CategoryProduct({ categories, onEdit, onDelete }) {
+  if (categories === null) return null;
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6">
-      {categories.map(category => (
-        <DesignCard
-          key={category._id}
-          name={category.name.en}
-          // image={category.image}
-          image={"https://images.unsplash.com/photo-1505740420928-5e560c06d30e"}
-        />
-      ))}
-    </div>
+    <>
+      {categories.length === 0 ? (
+        <p className="text-white text-center my-5 font-bold text-4xl">
+          {categoryLocale?.empty}
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6">
+          {categories.map(category => (
+            <DesignCard
+              key={category._id}
+              name={category?.name?.en}
+              image={`${import.meta.env.VITE_API_URL_IMG}${category.images?.[0]?.url}`}
+              onEdit={() => onEdit(category)}
+              onDelete={() => onDelete(category._id)}
+            />
+          ))}
+        </div>
+      )}
+    </>
   );
 }

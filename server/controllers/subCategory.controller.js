@@ -1,9 +1,12 @@
 import SubCategory from "../models/subCategory.js";
 import { deleteFile } from "../utils/deleteFile.js";
 
+// Functionality Fetch getSubCategory
 const getSubCategory = async (req, res, next) => {
-  const subCategory = await SubCategory.find().sort({ createdAt: -1 });
-  // .populate("category", "name")
+  const subCategory = await SubCategory.find()
+    .populate("category")
+    .sort({ createdAt: -1 });
+
   return res.status(200).json({
     success: true,
     message: "SubCategory fetched successfully",
@@ -11,25 +14,31 @@ const getSubCategory = async (req, res, next) => {
   });
 };
 
+// Functionality Add SubCategory
 const addSubCategory = async (req, res, next) => {
   const { name, category, isActive } = req.validated.body;
 
+  // Validate file
   if (!req.file) {
-    return res.status(400).json({
-      success: false,
-      message: "SubCategory image is required",
-    });
+    const err = new Error("SubCategory image is required");
+    err.statusCode = 400;
+    throw err;
   }
 
+  // Name file path
   const fileName = req.file.filename;
   const imagePath = `/uploads/subCategory/${fileName}`;
   const imageKey = `subCategory/${fileName}`;
 
+  // Validate isActive, if type undefined chnage to true or isActive
+  const parsedIsActive = typeof isActive === "undefined" ? true : isActive;
+
+  // Create SubCategory
   const subCategory = await SubCategory.create({
     name,
     category,
     images: [{ url: imagePath, key: imageKey }],
-    isActive,
+    isActive: parsedIsActive,
   });
 
   return res.status(201).json({
@@ -39,18 +48,23 @@ const addSubCategory = async (req, res, next) => {
   });
 };
 
+// Functionality Update SubCategory
 const updateSubCategory = async (req, res, next) => {
   const { id } = req.validated.params;
 
-  const { name, category, image, isActive } = req.validated.body;
+  const { name, category, isActive } = req.validated.body;
 
+  // Find sub category by id
   const subCategory = await SubCategory.findById(id);
 
-  if (!subCategory)
-    return res
-      .status(404)
-      .json({ success: false, message: "SubCategory not found" });
+  // There is a sub category or there is not
+  if (!subCategory) {
+    const err = new Error("SubCategory not found");
+    err.statusCode = 404;
+    throw err;
+  }
 
+  // Validate name undefined or not
   if (name !== undefined) {
     subCategory.name = {
       en: name.en ?? subCategory.name.en,
@@ -59,28 +73,30 @@ const updateSubCategory = async (req, res, next) => {
     };
   }
 
+  // Validate category undefined or not
   if (category !== undefined) {
     subCategory.category = category;
   }
 
+  // Validate isActice undefined or not
   if (typeof isActive !== "undefined") {
     subCategory.isActive = isActive;
   }
 
+  // Check file.
   if (req.file) {
+    // Old image
     const oldImage = subCategory.images?.[0]?.url;
 
+    // Name file path and new image
     const fileName = req.file.filename;
     const newImagePath = `/uploads/subCategory/${fileName}`;
     const newImageKey = `subCategory/${fileName}`;
 
-    subCategory.images = [
-      {
-        url: newImagePath,
-        key: newImageKey,
-      },
-    ];
+    // Send image
+    subCategory.images = [{ url: newImagePath, key: newImageKey }];
 
+    // Delete old image if insert new image
     if (oldImage) {
       deleteFile(oldImage);
     }
@@ -95,29 +111,34 @@ const updateSubCategory = async (req, res, next) => {
   });
 };
 
+// Functionality Delete SubCategory
 const deleteSubCategory = async (req, res, next) => {
   const { id } = req.validated.params;
 
+  // Find sub category by id
   const subCategory = await SubCategory.findById(id);
 
+  // There is a sub category or there is not sub category
   if (!subCategory) {
-    return res.status(404).json({
-      success: false,
-      message: "SubCategory not found",
-    });
+    const err = new Error("SubCategory not found");
+    err.statusCode = 404;
+    throw err;
   }
 
+  // Old image
   const oldImage = subCategory.images?.[0]?.url;
 
+  // Delete old image
   if (oldImage) {
     deleteFile(oldImage);
   }
 
   await SubCategory.deleteOne({ _id: id });
 
-  return res
-    .status(200)
-    .json({ success: true, message: "SubCategory delete successfully" });
+  return res.status(200).json({
+    success: true,
+    message: "SubCategory delete successfully",
+  });
 };
 
 export default {
