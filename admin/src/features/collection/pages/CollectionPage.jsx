@@ -21,10 +21,13 @@ export default function CollectionPage() {
   const [collections, setCollections] = useState(null);
   const [subCategories, setSubCategories] = useState([]);
   const [editingCollection, setEditingCollection] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchCollection = async () => {
     try {
-      const res = await getCollection();
+      const res = await getCollection(
+        `/?search=${encodeURIComponent(searchQuery)}`,
+      );
       setCollections(res.collections || []);
     } catch (err) {
       toast.error(
@@ -39,9 +42,6 @@ export default function CollectionPage() {
       const res = await getSubCategory();
       setSubCategories(res.subCategory || []);
     } catch (err) {
-      toast.error(
-        subCategoryLocale?.messages?.fetchError || getErrorMessage(err),
-      );
       console.error(err);
     }
   };
@@ -49,7 +49,7 @@ export default function CollectionPage() {
   useEffect(() => {
     fetchCollection();
     fetchSubCategory();
-  }, []);
+  }, [searchQuery]);
 
   const handleSave = async values => {
     try {
@@ -146,6 +146,14 @@ export default function CollectionPage() {
   return (
     <>
       <div className="flex justify-end">
+        <input
+          type="text"
+          placeholder="Search by name..."
+          className="me-4 w-100 bg-white text-black px-4 py-2 rounded-lg outline-0"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+        />
+
         <button
           onClick={handleCreateModal}
           className="cursor-pointer bg-white text-black px-4 py-2 rounded-lg"

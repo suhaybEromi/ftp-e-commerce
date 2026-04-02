@@ -18,11 +18,14 @@ export default function BrandPage() {
   const [loading, setLoading] = useState(false);
   const [brands, setBrands] = useState(null);
   const [editingBrand, setEditingBrand] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch functionality.
   const fetchBrands = async () => {
     try {
-      const res = await getBrands();
+      const res = await getBrands(
+        `/?search=${encodeURIComponent(searchQuery)}`,
+      );
       setBrands(res.brands || []);
     } catch (err) {
       toast.error(brandLocale?.messages?.fetchError || getErrorMessage(err));
@@ -32,7 +35,7 @@ export default function BrandPage() {
 
   useEffect(() => {
     fetchBrands();
-  }, []);
+  }, [searchQuery]);
 
   // Add and Update functionality.
   const handleSave = async values => {
@@ -133,9 +136,19 @@ export default function BrandPage() {
   return (
     <>
       <div className="flex justify-end">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={e => {
+            setSearchQuery(e.target.value);
+          }}
+          placeholder="Search by name..."
+          className="me-4 w-100 bg-white text-black px-4 py-2 rounded-lg outline-0"
+        />
+
         <button
           onClick={handleOpenCreate}
-          className="bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-100 cursor-pointer"
+          className="cursor-pointer bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-100"
         >
           {brandLocale?.addTitleBrand}
         </button>

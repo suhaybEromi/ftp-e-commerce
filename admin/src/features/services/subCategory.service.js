@@ -1,7 +1,7 @@
 import api from "./api";
 
-export const getSubCategory = async () => {
-  const { data } = await api.get("/subcategory");
+export const getSubCategory = async (query = "") => {
+  const { data } = await api.get(`/subcategory${query}`);
   return data;
 };
 

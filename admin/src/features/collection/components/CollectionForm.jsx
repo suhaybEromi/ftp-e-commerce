@@ -7,6 +7,7 @@ import {
   updateCollectionSchema,
 } from "../schema";
 import collectionLocale from "../locale/collection";
+import ImageDragDrop from "../../../components/form/ImageDragDrop";
 
 export default function CollectionForm({
   initialValues,
@@ -41,9 +42,6 @@ export default function CollectionForm({
   }, [initialValues, reset]);
 
   const imageFile = watch("collectionImage");
-
-  const previewUrl =
-    imageFile instanceof File ? URL.createObjectURL(imageFile) : null;
 
   const isRTL = activeLang === "ar" || activeLang === "ku";
 
@@ -90,7 +88,7 @@ export default function CollectionForm({
 
             {errors?.name?.en?.message && (
               <p className="mt-2 text-sm text-red-400">
-                {errors.name.en.enmessage}
+                {errors.name.en.message}
               </p>
             )}
           </div>
@@ -112,7 +110,7 @@ export default function CollectionForm({
 
             {errors?.name?.ar?.message && (
               <p className="mt-2 text-sm text-red-400">
-                {errors.name.ar.enmessage}
+                {errors.name.ar.message}
               </p>
             )}
           </div>
@@ -134,89 +132,25 @@ export default function CollectionForm({
 
             {errors?.name?.ku?.message && (
               <p className="mt-2 text-sm text-red-400">
-                {errors.name.ku.enmessage}
+                {errors.name.ku.message}
               </p>
             )}
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-300">
-              {collectionLocale?.fields?.collectionImage}
-            </label>
-            <label className="block cursor-pointer rounded-3xl border-2 border-dashed border-slate-600 bg-slate-800/60 p-8 text-center transition hover:border-slate-500">
-              <div className="flex flex-col items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-700/70">
-                  <svg
-                    className="h-5 w-5 text-slate-300"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3 16.5V17a2 2 0 002 2h14a2 2 0 002-2v-.5M16 8l-4-4m0 0L8 8m4-4v12"
-                    />
-                  </svg>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-white">
-                    Upload collection image
-                  </p>
-                  <p className="mt-1 text-xs text-slate-400">
-                    PNG, JPG up to 5MB
-                  </p>
-                </div>
-
-                {imageFile instanceof File && (
-                  <p className="flex text-xs text-slate-300">
-                    Selected:
-                    <span className="text-green-500 ms-1">
-                      {imageFile.name}
-                    </span>
-                  </p>
-                )}
-              </div>
-
-              <input
-                type="file"
-                className="hidden"
-                onChange={e => {
-                  const file = e.target.files?.[0];
-                  setValue("collectionImage", file, { shouldValidate: true });
-                }}
-              />
-            </label>
-
-            {errors?.collectionImage?.message && (
-              <p className="mt-2 text-sm text-red-400">
-                {errors.collectionImage.message}
-              </p>
-            )}
-
-            {/* NOTE If upload image display image(for add). */}
-            {previewUrl && (
-              <div className="my-4">
-                <img
-                  src={previewUrl}
-                  className="w-45 h-45 object-contain border rounded-full border-slate-700"
-                />
-              </div>
-            )}
-
-            {/* NOTE If upload image display image(for edit). */}
-            {isEdit && initialValues?.previewImage && !imageFile && (
-              <div className="mt-4">
-                <p className="mb-2 text-sm text-slate-400">Current image</p>
-                <img
-                  src={initialValues.previewImage}
-                  alt="Sub Category preview"
-                  className="w-40 h-40 object-contain border rounded-full border-slate-700"
-                />
-              </div>
-            )}
+            <ImageDragDrop
+              label={collectionLocale.fields.collectionImage}
+              value={imageFile}
+              error={errors?.collectionImage?.message}
+              currentImage={isEdit ? initialValues?.previewImage : ""}
+              onChange={file => {
+                setValue("collectionImage", file, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                  shouldTouch: true,
+                });
+              }}
+            />
           </div>
 
           <div className="flex items-center justify-between rounded-3xl border border-slate-800 bg-slate-950 px-4 py-4">

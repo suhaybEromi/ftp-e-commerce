@@ -3,7 +3,19 @@ import { deleteFile } from "../utils/deleteFile.js";
 
 // Functionality Fetch Brand
 const getBrand = async (req, res) => {
-  const brands = await Brand.find().sort({ createdAt: -1 });
+  const { search = "" } = req.query;
+
+  const searchQuery = search
+    ? {
+        $or: [
+          { "name.en": { $regex: search, $options: "i" } },
+          { "name.ar": { $regex: search, $options: "i" } },
+          { "name.ku": { $regex: search, $options: "i" } },
+        ],
+      }
+    : {};
+
+  const brands = await Brand.find(searchQuery).sort({ createdAt: -1 });
 
   return res.status(200).json({
     success: true,

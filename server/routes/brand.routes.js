@@ -13,10 +13,8 @@ import { uploadFile } from "../middlewares/uploadFile.js";
 
 const router = express.Router();
 
-// Public Routes.
 router.get("/", asyncHandler(brandController.getBrand));
 
-// Admin Routes
 router.post(
   "/",
   uploadFile.single("brandImage"),

@@ -3,7 +3,19 @@ import { deleteFile } from "../utils/deleteFile.js";
 
 // Functionality Fetch Collection
 const getCollection = async (req, res, next) => {
-  const collections = await Collection.find()
+  const { search = "" } = req.query;
+
+  const searchQuery = search
+    ? {
+        $or: [
+          { "name.en": { $regex: search, $options: "i" } },
+          { "name.ar": { $regex: search, $options: "i" } },
+          { "name.ku": { $regex: search, $options: "i" } },
+        ],
+      }
+    : {};
+
+  const collections = await Collection.find(searchQuery)
     .populate("subCategory")
     .sort({ createdAt: -1 });
 

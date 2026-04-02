@@ -1,7 +1,46 @@
-export const productTranslate = {
-  brandName: {
-    en: "Product Name",
-    ar: "اسم العلامة",
-    ku: "ناوی براند",
+const productLocale = {
+  title: "Products",
+  addTitleProduct: "Add Product",
+  editTitleProduct: "Edit Product",
+  empty: "No Product found",
+  fields: {
+    nameEn: "Name (English)",
+    nameAr: "اسم (عربي)",
+    nameKu: "ناو (کوردی)",
+    descriptionEn: "Description (English)",
+    descriptionAr: "وصف (عربي)",
+    descriptionKu: "وەسف (کوردی)",
+    itemCode: "Item Code",
+    sku: "Sku",
+    stock: "Stock",
+    color: "Color",
+    price: "Price",
+    discountPrice: "Discount Price",
+    keywords: "Keywords",
+    size: "Size",
+    featured: "Featured",
+    rating: "Rating",
+    points: "Points",
+    cashBack: "CashBack",
+    collection: "Collection",
+    brand: "Brand",
+    productImage: "Product Image",
+    isActive: "Active",
+  },
+  actions: {
+    create: "Create Sub Category",
+    update: "Update Sub Category",
+    cancel: "Cancel Edit",
+  },
+  messages: {
+    creating: "Creating sub category...",
+    updating: "Updating sub category...",
+    deleting: "Deleting sub category...",
+    created: "Sub Category created successfully",
+    updated: "Sub Category updated successfully",
+    deleted: "Sub Category deleted successfully",
+    fetchError: "Failed to fetch sub categories",
   },
 };
+
+export default productLocale;

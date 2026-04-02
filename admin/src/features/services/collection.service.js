@@ -1,7 +1,7 @@
 import api from "./api";
 
-export const getCollection = async () => {
-  const { data } = await api.get("/collection");
+export const getCollection = async (query = "") => {
+  const { data } = await api.get(`/collection${query}`);
   return data;
 };
 

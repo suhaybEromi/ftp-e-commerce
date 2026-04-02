@@ -15,6 +15,7 @@ import brandRoutes from "./routes/brand.routes.js";
 import categoryRoutes from "./routes/category.routes.js";
 import subCategoryRoutes from "./routes/subCategory.routes.js";
 import collectionRoutes from "./routes/collection.routes.js";
+import productRoutes from "./routes/product.routes.js";
 
 app.use(
   cors({
@@ -31,6 +32,7 @@ app.use(`${prefix}/brand`, brandRoutes);
 app.use(`${prefix}/category`, categoryRoutes);
 app.use(`${prefix}/subcategory`, subCategoryRoutes);
 app.use(`${prefix}/collection`, collectionRoutes);
+app.use(`${prefix}/product`, productRoutes);
 
 app.use(errorHandler);
 

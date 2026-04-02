@@ -18,10 +18,13 @@ export default function CategoryPage() {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState(null);
   const [editingCategories, setEditingCategories] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchCategory = async () => {
     try {
-      const res = await getCategory();
+      const res = await getCategory(
+        `/?search=${encodeURIComponent(searchQuery)}`,
+      );
       setCategories(res.category || []);
     } catch (err) {
       toast.error(categoryLocale?.messages?.fetchError || getErrorMessage(err));
@@ -31,7 +34,7 @@ export default function CategoryPage() {
 
   useEffect(() => {
     fetchCategory();
-  }, []);
+  }, [searchQuery]);
 
   const handleSave = async values => {
     try {
@@ -120,6 +123,14 @@ export default function CategoryPage() {
   return (
     <>
       <div className="flex justify-end">
+        <input
+          type="text"
+          placeholder="Search by name..."
+          className="me-4 w-100 bg-white text-black px-4 py-2 rounded-lg outline-0"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+        />
+
         <button
           onClick={handleOpenCreate}
           className="cursor-pointer bg-white text-black px-4 py-2 rounded-lg"

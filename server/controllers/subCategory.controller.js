@@ -3,7 +3,19 @@ import { deleteFile } from "../utils/deleteFile.js";
 
 // Functionality Fetch getSubCategory
 const getSubCategory = async (req, res, next) => {
-  const subCategory = await SubCategory.find()
+  const { search = "" } = req.query;
+
+  const searchQuery = search
+    ? {
+        $or: [
+          { "name.en": { $regex: search, $options: "i" } },
+          { "name.ar": { $regex: search, $options: "i" } },
+          { "name.ku": { $regex: search, $options: "i" } },
+        ],
+      }
+    : {};
+
+  const subCategory = await SubCategory.find(searchQuery)
     .populate("category")
     .sort({ createdAt: -1 });
 

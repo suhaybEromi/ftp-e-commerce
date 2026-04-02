@@ -13,6 +13,7 @@ export default function ModalDesign({
     md: "max-w-lg",
     lg: "max-w-xl",
     xl: "max-w-3xl",
+    xxl: "max-w-5xl",
   };
 
   return (

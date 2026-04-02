@@ -3,7 +3,19 @@ import { deleteFile } from "../utils/deleteFile.js";
 
 // Functionality Fetch Category
 const getCategory = async (req, res) => {
-  const category = await Category.find().sort({ createdAt: -1 });
+  const { search = "" } = req.query;
+
+  const searchQuery = search
+    ? {
+        $or: [
+          { "name.en": { $regex: search, $options: "i" } },
+          { "name.ar": { $regex: search, $options: "i" } },
+          { "name.ku": { $regex: search, $options: "i" } },
+        ],
+      }
+    : {};
+
+  const category = await Category.find(searchQuery).sort({ createdAt: -1 });
 
   return res.status(200).json({
     success: true,

@@ -34,3 +34,23 @@ export const zTranslatedName = z.object({
     .min(2, "Kurdish name must be at least 2 characters")
     .max(80, "Kurdish name must not exceed 80 characters"),
 });
+
+export const zTranslatedDescription = z.object({
+  en: z
+    .string()
+    .trim()
+    .min(10, "English description must be at least 10 characters")
+    .max(500, "English description must not exceed 500 characters"),
+
+  ar: z
+    .string()
+    .trim()
+    .min(10, "Arabic description must be at least 10 characters")
+    .max(500, "Arabic description must not exceed 500 characters"),
+
+  ku: z
+    .string()
+    .trim()
+    .min(10, "Kurdish description must be at least 10 characters")
+    .max(500, "Kurdish description must not exceed 500 characters"),
+});

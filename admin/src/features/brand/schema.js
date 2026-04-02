@@ -1,6 +1,6 @@
-import { object, z } from "zod";
+import { z } from "zod";
 
-const MAX_FILE_SIZE = 2 * 1024 * 1024;
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = [
   "image/jpeg",
   "image/jpg",
@@ -34,7 +34,7 @@ export const createBrandSchema = z.object({
     .refine(file => file instanceof File, "Brand image is required")
     .refine(
       file => !file || file.size <= MAX_FILE_SIZE,
-      "Max image size is 2MB",
+      "Max image size is 5MB",
     )
     .refine(
       file => !file || ACCEPTED_IMAGE_TYPES.includes(file.type),
@@ -53,7 +53,7 @@ export const updateBrandSchema = z
       .refine(file => !file || file instanceof File, "Invalid image file")
       .refine(
         file => !file || file.size <= MAX_FILE_SIZE,
-        "Max image size is 2MB",
+        "Max image size is 5MB",
       )
       .refine(
         file => !file || ACCEPTED_IMAGE_TYPES.includes(file.type),

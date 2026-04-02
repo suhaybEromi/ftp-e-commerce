@@ -21,10 +21,13 @@ export default function SubCategoryPage() {
   const [subCategories, setSubCategories] = useState(null);
   const [categories, setCategories] = useState([]);
   const [editingSubCategories, setEditingSubCategories] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchSubCategories = async () => {
     try {
-      const res = await getSubCategory();
+      const res = await getSubCategory(
+        `/?search=${encodeURIComponent(searchQuery)}`,
+      );
       setSubCategories(res.subCategory || []);
     } catch (err) {
       toast.error(
@@ -39,7 +42,6 @@ export default function SubCategoryPage() {
       const res = await getCategory();
       setCategories(res.category || []);
     } catch (err) {
-      toast.error(categoryLocale?.messages?.fetchError || getErrorMessage(err));
       console.error(err);
     }
   };
@@ -47,7 +49,7 @@ export default function SubCategoryPage() {
   useEffect(() => {
     fetchSubCategories();
     fetchCategories();
-  }, []);
+  }, [searchQuery]);
 
   const handleSave = async values => {
     try {
@@ -144,6 +146,14 @@ export default function SubCategoryPage() {
   return (
     <>
       <div className="flex justify-end">
+        <input
+          type="text"
+          placeholder="Search by name..."
+          className="me-4 w-100 bg-white text-black px-4 py-2 rounded-lg outline-0"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+        />
+
         <button
           onClick={handleOpenCreate}
           className="cursor-pointer bg-white text-black px-4 py-2 rounded-lg"

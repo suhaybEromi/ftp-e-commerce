@@ -11,12 +11,23 @@ export default function BrandProduct({ brands, onEdit, onDelete }) {
           {brandLocale?.empty}
         </p>
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5">
           {brands.map(brand => (
             <DesignCard
               key={brand._id}
               name={brand?.name?.en}
               image={`${import.meta.env.VITE_API_URL_IMG}${brand?.images?.[0]?.url}`}
+              isActive={
+                brand.isActive ? (
+                  <span className="text-green-500 px-3 my-1 text-sm">
+                    Active
+                  </span>
+                ) : (
+                  <span className="text-red-500 px-3 my-1 text-sm">
+                    In Active
+                  </span>
+                )
+              }
               onEdit={() => onEdit(brand)}
               onDelete={() => onDelete(brand._id)}
             />
