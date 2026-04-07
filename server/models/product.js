@@ -8,8 +8,8 @@ const colorSchema = new Schema(
       required: [true, "English Color is required"],
       trim: true,
     },
-    ar: { type: String, trim: true },
-    ku: { type: String, trim: true },
+    ar: { type: String, trim: true, default: "" },
+    ku: { type: String, trim: true, default: "" },
   },
   { _id: false },
 );
@@ -30,19 +30,57 @@ const imageSchema = new Schema(
   { _id: false },
 );
 
+const translatedNameSchema = new Schema(
+  {
+    en: {
+      type: String,
+      required: [true, "English name is required"],
+      trim: true,
+    },
+    ar: {
+      type: String,
+      required: [true, "Arabic name is required"],
+      trim: true,
+    },
+    ku: {
+      type: String,
+      required: [true, "Kurdish name is required"],
+      trim: true,
+    },
+  },
+  { _id: false },
+);
+
+const translatedDescriptionSchema = new Schema(
+  {
+    en: {
+      type: String,
+      required: [true, "English description is required"],
+      trim: true,
+    },
+    ar: {
+      type: String,
+      required: [true, "Arabic description is required"],
+      trim: true,
+    },
+    ku: {
+      type: String,
+      required: [true, "Kurdish description is required"],
+      trim: true,
+    },
+  },
+  { _id: false },
+);
+
 const productSchema = new Schema(
   {
-    name: {
-      en: { type: String, required: [true, "English name is required"] },
-      ar: { type: String, required: [true, "Arabic name is required"] },
-      ku: { type: String, required: [true, "Kurdish name is required"] },
+    name: { type: translatedNameSchema, required: true },
+    description: { type: translatedDescriptionSchema, required: true },
+
+    color: {
+      type: colorSchema,
+      default: () => ({ en: "", ar: "", ku: "" }),
     },
-    description: {
-      en: { type: String, required: [true, "English description is required"] },
-      ar: { type: String, required: [true, "Arabic description is required"] },
-      ku: { type: String, required: [true, "Kurdish description is required"] },
-    },
-    color: { colorSchema },
 
     images: {
       type: [imageSchema],
@@ -56,17 +94,13 @@ const productSchema = new Schema(
     },
 
     itemCode: {
-      type: [{ type: String, required: [true, "ItemCode is required"] }],
-      default: [],
-      validate: {
-        validator: val => {
-          return Array.isArray(val) && val.length > 0;
-        },
-        message: "At least one itemCode is required",
-      },
+      type: String,
+      trim: true,
+      uppercase: true,
+      required: [true, "ItemCode is required"],
+      unique: true,
+      index: true,
     },
-
-    sku: { type: String, trim: true, uppercase: true },
 
     collectionName: {
       type: Schema.Types.ObjectId,
@@ -79,20 +113,31 @@ const productSchema = new Schema(
       required: [true, "Brand is required"],
     },
 
-    size: {
-      type: [String],
-      enum: ["small", "medium", "large"],
-      default: [],
+    size: { type: String, enum: ["", "small", "medium", "large"], default: "" },
+
+    price: {
+      type: Number,
+      required: [true, "Price is required"],
+      min: [0.01, "Price must be greater than 0"],
     },
 
-    price: { type: Number, required: [true, "Price is required"], default: 0 },
-    discountPrice: { type: Number, default: 0 },
+    discountPrice: {
+      type: Number,
+      default: 0,
+      min: [0, "Discount price cannot be negative"],
+      validate: {
+        validator: function (val) {
+          return val < this.price;
+        },
+        message: "Discount price must be less than the original price",
+      },
+    },
 
     keyword: {
-      type: [String],
+      type: [{ type: String, trim: true, lowercase: true }],
       default: [],
       validate: {
-        validator: val => {
+        validator: function (val) {
           return Array.isArray(val) && val.length > 0;
         },
         message: "At least one keyword is required",
@@ -102,13 +147,21 @@ const productSchema = new Schema(
     stockStatus: {
       type: String,
       enum: ["in_stock", "out_of_stock"],
-      default: "in_stock",
+      required: [true, "Stock status is required"],
     },
 
     stockQuantity: {
       type: Number,
-      required: [true, "Stock is required"],
       default: 0,
+      min: [0, "Stock cannot be negative"],
+      validate: {
+        validator: function (val) {
+          if (this.stockStatus === "in_stock") return val > 0;
+          return val === 0 || val === undefined;
+        },
+        message:
+          "Stock quantity must be greater than 0 when in stock, and 0 when out of stock",
+      },
     },
 
     isFeatured: { type: Boolean, default: false },
@@ -120,8 +173,12 @@ const productSchema = new Schema(
       max: [5, "Rating cannot exceed 5"],
     },
 
-    points: { type: Number, default: 0 },
-    cashback: { type: Number, default: 0 },
+    points: { type: Number, default: 0, min: [0, "Points cannot be negative"] },
+    cashback: {
+      type: Number,
+      default: 0,
+      min: [0, "Cashback cannot be negative"],
+    },
 
     isActive: { type: Boolean, default: true },
   },

@@ -39,8 +39,8 @@ const addCollection = async (req, res, next) => {
 
   // Name file path
   const fileName = req.file.filename;
-  const imagePath = `/uploads/collection/${fileName}`;
-  const imageKey = `collection/${fileName}`;
+  const imagePath = `/uploads/collections/${fileName}`;
+  const imageKey = `collections/${fileName}`;
 
   // Validate isActive, if type undefined chnage to true or isActive
   const parsedIsActive = typeof isActive === "undefined" ? true : isActive;
@@ -90,7 +90,7 @@ const updateCollection = async (req, res, next) => {
     collection.subCategory = subCategory;
   }
 
-  // Validate isActice undefined or not
+  // Validate isActive undefined or not
   if (typeof isActive !== "undefined") {
     collection.isActive = isActive;
   }
@@ -102,8 +102,8 @@ const updateCollection = async (req, res, next) => {
 
     // Name file path and new image
     const fileName = req.file.filename;
-    const newImagePath = `/uploads/collection/${fileName}`;
-    const newImageKey = `collection/${fileName}`;
+    const newImagePath = `/uploads/collections/${fileName}`;
+    const newImageKey = `collections/${fileName}`;
 
     // Send image
     collection.images = [{ url: newImagePath, key: newImageKey }];

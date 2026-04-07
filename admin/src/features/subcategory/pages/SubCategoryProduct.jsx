@@ -1,4 +1,5 @@
 import DesignCard from "../../../components/card/DesignCard";
+import Spinner from "../../../components/form/Spinner";
 import subCategoryLocale from "../locale/subcategoy";
 
 export default function SubCategoryProduct({
@@ -6,7 +7,7 @@ export default function SubCategoryProduct({
   onEdit,
   onDelete,
 }) {
-  if (subCategories === null) return null;
+  if (subCategories === null) return <Spinner />;
 
   return (
     <>
@@ -21,17 +22,7 @@ export default function SubCategoryProduct({
               key={subcategory._id}
               name={subcategory?.name?.en}
               image={`${import.meta.env.VITE_API_URL_IMG}${subcategory.images?.[0]?.url}`}
-              isActive={
-                subcategory.isActive ? (
-                  <span className="text-green-500 px-3 my-1 text-sm">
-                    Active
-                  </span>
-                ) : (
-                  <span className="text-red-500 px-3 my-1 text-sm">
-                    In Active
-                  </span>
-                )
-              }
+              isActive={subcategory.isActive}
               onEdit={() => onEdit(subcategory)}
               onDelete={() => onDelete(subcategory._id)}
             />

@@ -39,8 +39,8 @@ const addSubCategory = async (req, res, next) => {
 
   // Name file path
   const fileName = req.file.filename;
-  const imagePath = `/uploads/subCategory/${fileName}`;
-  const imageKey = `subCategory/${fileName}`;
+  const imagePath = `/uploads/subCategories/${fileName}`;
+  const imageKey = `subCategories/${fileName}`;
 
   // Validate isActive, if type undefined chnage to true or isActive
   const parsedIsActive = typeof isActive === "undefined" ? true : isActive;
@@ -102,8 +102,8 @@ const updateSubCategory = async (req, res, next) => {
 
     // Name file path and new image
     const fileName = req.file.filename;
-    const newImagePath = `/uploads/subCategory/${fileName}`;
-    const newImageKey = `subCategory/${fileName}`;
+    const newImagePath = `/uploads/subCategories/${fileName}`;
+    const newImageKey = `subCategories/${fileName}`;
 
     // Send image
     subCategory.images = [{ url: newImagePath, key: newImageKey }];

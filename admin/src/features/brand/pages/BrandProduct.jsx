@@ -1,8 +1,9 @@
 import DesignCard from "../../../components/card/DesignCard";
+import Spinner from "../../../components/form/Spinner";
 import brandLocale from "../locale/brand";
 
 export default function BrandProduct({ brands, onEdit, onDelete }) {
-  if (brands === null) return null; // or loading spinner
+  if (brands === null) return <Spinner />;
 
   return (
     <>
@@ -17,17 +18,7 @@ export default function BrandProduct({ brands, onEdit, onDelete }) {
               key={brand._id}
               name={brand?.name?.en}
               image={`${import.meta.env.VITE_API_URL_IMG}${brand?.images?.[0]?.url}`}
-              isActive={
-                brand.isActive ? (
-                  <span className="text-green-500 px-3 my-1 text-sm">
-                    Active
-                  </span>
-                ) : (
-                  <span className="text-red-500 px-3 my-1 text-sm">
-                    In Active
-                  </span>
-                )
-              }
+              isActive={brand.isActive}
               onEdit={() => onEdit(brand)}
               onDelete={() => onDelete(brand._id)}
             />

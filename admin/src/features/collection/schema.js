@@ -36,7 +36,7 @@ export const createCollectionSchema = z.object({
     .refine(file => file instanceof File, "Collection image is required")
     .refine(
       file => !file || file.size <= MAX_FILE_SIZE,
-      "Max image size in 2MB",
+      "Max image size in 5MB",
     )
     .refine(
       file => !file || ACCEPTED_IMAGE_TYPES.includes(file.type),
@@ -56,7 +56,7 @@ export const updateCollectionSchema = z
       .refine(file => !file || file instanceof File, "Invalid image file")
       .refine(
         file => !file || file.size <= MAX_FILE_SIZE,
-        "Max image size is 2MB",
+        "Max image size is 5MB",
       )
       .refine(
         file => !file || ACCEPTED_IMAGE_TYPES.includes(file.type),

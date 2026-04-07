@@ -1,7 +1,8 @@
 import DesignCard from "../../../components/card/DesignCard";
+import Spinner from "../../../components/form/Spinner";
 import categoryLocale from "../locale/category";
 export default function CategoryProduct({ categories, onEdit, onDelete }) {
-  if (categories === null) return null;
+  if (categories === null) return <Spinner />;
 
   return (
     <>
@@ -16,17 +17,7 @@ export default function CategoryProduct({ categories, onEdit, onDelete }) {
               key={category._id}
               name={category?.name?.en}
               image={`${import.meta.env.VITE_API_URL_IMG}${category.images?.[0]?.url}`}
-              isActive={
-                category.isActive ? (
-                  <span className="text-green-500 px-3 my-1 text-sm">
-                    Active
-                  </span>
-                ) : (
-                  <span className="text-red-500 px-3 my-1 text-sm">
-                    In Active
-                  </span>
-                )
-              }
+              isActive={category.isActive}
               onEdit={() => onEdit(category)}
               onDelete={() => onDelete(category._id)}
             />

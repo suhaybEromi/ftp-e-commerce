@@ -30,6 +30,9 @@ const validate = schema => (req, res, next) => {
     });
   }
 
+  // In controller, use validated data, not raw req.body.
+  // req.body❌
+  // req.validated.body✅
   req.validated = result.data;
   next();
 };

@@ -1,8 +1,9 @@
 import DesignCard from "../../../components/card/DesignCard";
+import Spinner from "../../../components/form/Spinner";
 import collectionLocale from "../locale/collection";
 
 export default function CollectionProduct({ collections, onEdit, onDelete }) {
-  if (collections === null) return null;
+  if (collections === null) return <Spinner />;
 
   return (
     <>
@@ -17,17 +18,7 @@ export default function CollectionProduct({ collections, onEdit, onDelete }) {
               key={collection._id}
               name={collection.name.en}
               image={`${import.meta.env.VITE_API_URL_IMG}${collection.images?.[0]?.url}`}
-              isActive={
-                collection.isActive ? (
-                  <span className="text-green-500 px-3 my-1 text-sm">
-                    Active
-                  </span>
-                ) : (
-                  <span className="text-red-500 px-3 my-1 text-sm">
-                    In Active
-                  </span>
-                )
-              }
+              isActive={collection.isActive}
               onEdit={() => onEdit(collection)}
               onDelete={() => onDelete(collection._id)}
             />

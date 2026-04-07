@@ -11,7 +11,6 @@ import {
   updateCollection,
 } from "../../services/collection.service";
 import { getSubCategory } from "../../services/subCategory.service";
-import subCategoryLocale from "../../subcategory/locale/subcategoy";
 import toast from "react-hot-toast";
 
 export default function CollectionPage() {

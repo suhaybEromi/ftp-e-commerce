@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import ModalDesign from "../../../components/modal/ModalDesign";
 import ProductForm from "../components/ProductForm";
+import Product from "./Product";
 import {
+  createProduct,
   deleteProduct,
   getProducts,
   updateProduct,
@@ -11,9 +13,8 @@ import { getErrorMessage } from "../../utils/getErrorMessage";
 import toast from "react-hot-toast";
 import { getCollection } from "../../services/collection.service";
 import { getBrands } from "../../services/brand.service";
-import ProductTable from "./ProductTable";
 
-export default function ProductPage() {
+export default function AddProductPage() {
   const [open, setOpen] = useState(false);
   const [activeLang, setActiveLang] = useState("en");
   const [loading, setLoading] = useState(false);
@@ -119,6 +120,12 @@ export default function ProductPage() {
           success: productLocale?.messages?.updated,
           error: err => getErrorMessage(err),
         });
+      } else {
+        await toast.promise(createProduct(formData), {
+          loading: productLocale?.messages?.creating,
+          success: productLocale?.messages?.created,
+          error: err => getErrorMessage(err),
+        });
       }
 
       await fetchProducts();
@@ -222,11 +229,22 @@ export default function ProductPage() {
           Import Excel
         </button>
 
+        <button
+          onClick={handleCreateModal}
+          className="cursor-pointer bg-gray-100 text-black px-4 py-2 rounded-lg"
+        >
+          {productLocale?.addTitleProduct}
+        </button>
+
         <ModalDesign
           open={open}
           onClose={handleCloseModal}
           onSave={handleSave}
-          title={editingProduct ? productLocale.editTitleProduct : ""}
+          title={
+            editingProduct
+              ? productLocale.editTitleProduct
+              : productLocale.addTitleProduct
+          }
           size="xxl"
         >
           <ProductForm
@@ -244,7 +262,7 @@ export default function ProductPage() {
 
       {/* Display Product */}
       <div className="my-7">
-        <ProductTable
+        <Product
           products={products}
           onEdit={handleEdit}
           onDelete={handleDelete}

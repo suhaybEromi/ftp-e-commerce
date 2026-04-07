@@ -5,26 +5,15 @@ export default function ImageDragDrop({
   onChange,
   error,
   label = "Upload image",
-  accept = "image/png,image/jpeg,image/jpg,image/webp,image/jfif",
-  helperText = "PNG, JPG, JPEG, WEBP, JFIF",
+  accept = "image/png,image/jpeg,image/jpg,image/webp,image/jfif,image/gif",
+  helperText = "PNG, JPG, JPEG, WEBP, JFIF, GIF",
   currentImage = "",
+  currentImages = [],
+  multiple = false,
   rounded = "rounded-3xl",
   previewClassName = "h-40 w-40 rounded-full object-contain border border-slate-700",
 }) {
   const [dragActive, setDragActive] = useState(false);
-
-  const previewUrl = useMemo(() => {
-    if (value instanceof File) {
-      return URL.createObjectURL(value);
-    }
-    return null;
-  }, [value]);
-
-  useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-    };
-  }, [previewUrl]);
 
   const allowedImages = [
     "image/jpeg",
@@ -32,12 +21,46 @@ export default function ImageDragDrop({
     "image/png",
     "image/webp",
     "image/jfif",
+    "image/gif",
   ];
 
-  const handleFileSelect = file => {
-    if (!file) return;
-    if (!allowedImages.includes(file.type)) return;
-    onChange(file);
+  const normalizedValue = useMemo(() => {
+    if (multiple) {
+      return Array.isArray(value) ? value : [];
+    }
+    return value instanceof File ? value : null;
+  }, [value, multiple]);
+
+  const previewUrls = useMemo(() => {
+    if (multiple) {
+      return normalizedValue.map(file => URL.createObjectURL(file));
+    }
+
+    if (normalizedValue instanceof File) {
+      return [URL.createObjectURL(normalizedValue)];
+    }
+
+    return [];
+  }, [normalizedValue, multiple]);
+
+  useEffect(() => {
+    return () => {
+      previewUrls.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [previewUrls]);
+
+  const handleFileSelect = files => {
+    if (!files || files.length === 0) return;
+
+    const validFiles = Array.from(files).filter(file =>
+      allowedImages.includes(file.type),
+    );
+
+    if (multiple) {
+      onChange(validFiles);
+    } else {
+      onChange(validFiles[0] || null);
+    }
   };
 
   const handleDragOver = e => {
@@ -57,15 +80,24 @@ export default function ImageDragDrop({
     e.stopPropagation();
     setDragActive(false);
 
-    const file = e.dataTransfer.files?.[0];
-    handleFileSelect(file);
+    const files = e.dataTransfer.files;
+    handleFileSelect(files);
   };
+
+  const currentImagesList = multiple
+    ? Array.isArray(currentImages)
+      ? currentImages
+      : []
+    : currentImage
+      ? [currentImage]
+      : [];
 
   return (
     <div>
       <label className="mb-2 block text-sm font-medium text-slate-300">
         {label}
       </label>
+
       <label
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -96,44 +128,84 @@ export default function ImageDragDrop({
 
           <div>
             <p className="text-sm font-medium text-white">
-              Drag and drop image here
+              {multiple
+                ? "Drag and drop images here"
+                : "Drag and drop image here"}
             </p>
             <p className="mt-1 text-xs text-slate-400">or click to browse</p>
             <p className="mt-1 text-xs text-slate-400">{helperText}</p>
           </div>
 
-          {value instanceof File && (
-            <p className="flex text-xs text-slate-300">
-              Selected:
-              <span className="ms-1 text-green-500">{value.name}</span>
-            </p>
-          )}
+          {multiple
+            ? Array.isArray(normalizedValue) &&
+              normalizedValue.length > 0 && (
+                <p className="flex text-xs text-slate-300">
+                  Selected:
+                  <span className="ms-1 text-green-500">
+                    {normalizedValue.length} file(s)
+                  </span>
+                </p>
+              )
+            : normalizedValue instanceof File && (
+                <p className="flex text-xs text-slate-300">
+                  Selected:
+                  <span className="ms-1 text-green-500">
+                    {normalizedValue.name}
+                  </span>
+                </p>
+              )}
         </div>
 
         <input
           type="file"
           accept={accept}
+          multiple={multiple}
           className="hidden"
           onChange={e => {
-            const file = e.target.files?.[0];
-            handleFileSelect(file);
+            handleFileSelect(e.target.files);
           }}
         />
       </label>
+
       {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
 
-      {/* NOTE If upload image display image(for add). */}
-      {previewUrl && (
+      {/* New uploaded image previews */}
+      {previewUrls.length > 0 && (
         <div className="my-4">
-          <img src={previewUrl} alt="Preview" className={previewClassName} />
+          <p className="mb-2 text-sm text-slate-400">
+            {multiple ? "Selected images" : "Selected image"}
+          </p>
+
+          <div className="flex flex-wrap gap-3">
+            {previewUrls.map((url, index) => (
+              <img
+                key={index}
+                src={url}
+                alt={`Preview ${index + 1}`}
+                className={previewClassName}
+              />
+            ))}
+          </div>
         </div>
       )}
 
-      {/* NOTE If upload image display image(for edit). */}
-      {!previewUrl && currentImage && (
+      {/* Existing image previews for edit */}
+      {previewUrls.length === 0 && currentImagesList.length > 0 && (
         <div className="mt-4">
-          <p className="mb-2 text-sm text-slate-400">Current image</p>
-          <img src={currentImage} alt="Current" className={previewClassName} />
+          <p className="mb-2 text-sm text-slate-400">
+            {multiple ? "Current images" : "Current image"}
+          </p>
+
+          <div className="flex flex-wrap gap-3">
+            {currentImagesList.map((img, index) => (
+              <img
+                key={index}
+                src={img}
+                alt={`Current ${index + 1}`}
+                className={previewClassName}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>

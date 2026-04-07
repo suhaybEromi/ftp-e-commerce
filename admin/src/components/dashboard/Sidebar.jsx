@@ -27,6 +27,19 @@ export default function Sidebar() {
         </NavLink>
 
         <NavLink
+          to="/products"
+          className={({ isActive }) =>
+            `${navStyle} ${
+              isActive
+                ? "bg-sky-700 opacity-90 text-white font-extrabold"
+                : "text-gray-300 font-medium"
+            }`
+          }
+        >
+          Products
+        </NavLink>
+
+        <NavLink
           to="/brand"
           className={({ isActive }) =>
             `${navStyle} ${
@@ -90,19 +103,6 @@ export default function Sidebar() {
         >
           Add Products
         </NavLink>
-
-        {/* <NavLink
-          to="/product"
-          className={({ isActive }) =>
-            `${navStyle} ${
-              isActive
-                ? "bg-sky-700 opacity-90 text-white font-extrabold"
-                : "text-gray-300 font-medium"
-            }`
-          }
-        >
-          Products
-        </NavLink> */}
       </div>
     </aside>
   );

@@ -6,9 +6,14 @@ const errorHandler = (err, req, res, next) => {
     const fields = Object.keys(err.keyPattern || {});
     let message = "Duplicate value already exists";
 
+    console.log("Duplicate key error:", err.keyPattern);
+    console.log("Duplicate key value:", err.keyValue);
+
     // Brand or Category standalone unique by name.en
     if (fields.length === 1 && fields.includes("name.en")) {
       message = "English name already exists";
+    } else if (fields.some(field => field.includes("itemCode"))) {
+      message = "Item Code already exists";
     }
 
     // SubCategory unique by name.en + category
@@ -44,9 +49,10 @@ const errorHandler = (err, req, res, next) => {
 
   // Status code
   if (err.statusCode) {
-    return res
-      .status(err.statusCode)
-      .json({ success: false, message: err.message });
+    return res.status(err.statusCode).json({
+      success: false,
+      message: err.message,
+    });
   }
 
   // Mongoose cast error

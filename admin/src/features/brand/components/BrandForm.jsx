@@ -35,7 +35,6 @@ const BrandForm = ({
   }, [initialValues, reset]);
 
   const imageFile = watch("brandImage");
-  // const isActive = watch("isActive");
 
   const isRTL = activeLang === "ar" || activeLang === "ku";
 

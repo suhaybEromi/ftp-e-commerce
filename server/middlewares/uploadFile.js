@@ -9,8 +9,8 @@ const storage = multer.diskStorage({
       avatar: "uploads/users/",
       brandImage: "uploads/brands/",
       categoryImage: "uploads/categories/",
-      subCategoryImage: "uploads/subCategory/",
-      collectionImage: "uploads/collection/",
+      subCategoryImage: "uploads/subCategories/",
+      collectionImage: "uploads/collections/",
     };
 
     const folder = folderMap[file.fieldname] || "uploads/";
@@ -45,12 +45,16 @@ const fileFilter = (req, file, cb) => {
     "image/jpeg",
     "image/webp",
     "image/jfif",
+    "image/gif",
   ];
 
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error("Only images are allowed"), false);
+    cb(
+      new Error("Only images are allowed(PNG, JPG, JPEG, WEBP, JFIF, GIF)"),
+      false,
+    );
   }
 };
 

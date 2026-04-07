@@ -10,7 +10,6 @@ import {
   deleteSubCategory,
 } from "../../services/subCategory.service";
 import subCategoryLocale from "../locale/subcategoy";
-import categoryLocale from "../../category/locale/category";
 import { getErrorMessage } from "../../utils/getErrorMessage";
 import { getCategory } from "../../services/category.service";
 

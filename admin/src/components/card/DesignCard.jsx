@@ -6,13 +6,20 @@ export default function DesignCard({
   image,
   className,
   isActive,
+  itemCode,
   onEdit,
   onDelete,
 }) {
   return (
     <div>
       <div className="overflow-hidden rounded-3xl border border-slate-700 shadow-lg">
-        <p className={className}>{isActive}</p>
+        <p>
+          {isActive ? (
+            <span className="text-green-600 px-3 my-1 text-sm">Active</span>
+          ) : (
+            <span className="text-red-600 px-3 my-1 text-sm">In Active</span>
+          )}
+        </p>
         <img
           src={image}
           alt={name}
@@ -21,6 +28,9 @@ export default function DesignCard({
 
         <div className="p-2">
           <h3 className="text-md font-semibold text-white truncate">{name}</h3>
+          <h3 className="text-sm font-medium text-gray-600 truncate">
+            {itemCode}
+          </h3>
 
           <div className="mt-5 flex justify-center gap-3">
             <button
