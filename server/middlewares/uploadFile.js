@@ -4,18 +4,25 @@ import path from "path";
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const folderMap = {
-      productImage: "uploads/products/",
-      avatar: "uploads/users/",
-      brandImage: "uploads/brands/",
-      categoryImage: "uploads/categories/",
-      subCategoryImage: "uploads/subCategories/",
-      collectionImage: "uploads/collections/",
-    };
+    let folder = "uploads/";
 
-    const folder = folderMap[file.fieldname] || "uploads/";
+    if (
+      file.fieldname === "productImage" ||
+      /^variant_\d+_images$/.test(file.fieldname)
+    ) {
+      folder = "uploads/products/";
+    } else if (file.fieldname === "avatar") {
+      folder = "uploads/users/";
+    } else if (file.fieldname === "brandImage") {
+      folder = "uploads/brands/";
+    } else if (file.fieldname === "categoryImage") {
+      folder = "uploads/categories/";
+    } else if (file.fieldname === "subCategoryImage") {
+      folder = "uploads/subCategories/";
+    } else if (file.fieldname === "collectionImage") {
+      folder = "uploads/collections/";
+    }
 
-    // create folder if not exists
     if (!fs.existsSync(folder)) {
       fs.mkdirSync(folder, { recursive: true });
     }

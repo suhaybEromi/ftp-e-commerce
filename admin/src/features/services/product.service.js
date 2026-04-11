@@ -24,6 +24,36 @@ export const updateProduct = async (id, formData) => {
   return data;
 };
 
+export const updateSingleVariantImage = async (
+  productId,
+  variantId,
+  imageId,
+  formData,
+) => {
+  const { data } = await api.put(
+    `/product/${productId}/variants/${variantId}/images/${imageId}`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+  return data;
+};
+
+export const deleteSingleVariantImage = async (
+  productId,
+  variantId,
+  imageId,
+) => {
+  const { data } = await api.delete(
+    `/product/${productId}/variants/${variantId}/images/${imageId}`,
+  );
+
+  return data;
+};
+
 export const deleteProduct = async id => {
   const { data } = await api.delete(`/product/${id}`);
   return data;

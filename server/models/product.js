@@ -26,8 +26,59 @@ const imageSchema = new Schema(
       required: [true, "Image key is required"],
       trim: true,
     },
+    alt: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    isMain: {
+      type: Boolean,
+      default: false,
+    },
   },
-  { _id: false },
+  { _id: true },
+);
+
+const variantSchema = new Schema(
+  {
+    color: {
+      type: colorSchema,
+      default: () => ({ en: "", ar: "", ku: "" }),
+    },
+
+    images: {
+      type: [imageSchema],
+      required: true,
+      validate: {
+        validator: function (val) {
+          return Array.isArray(val) && val.length >= 1 && val.length <= 10;
+        },
+        message:
+          "At least one image is required and no more than 10 images are allowed",
+      },
+    },
+
+    stockStatus: {
+      type: String,
+      enum: ["in_stock", "out_of_stock"],
+      required: [true, "Stock status is required"],
+    },
+
+    stockQuantity: {
+      type: Number,
+      default: 0,
+      min: [0, "Stock cannot be negative"],
+      validate: {
+        validator: function (val) {
+          if (this.stockStatus === "in_stock") return val > 0;
+          return val === 0 || val === undefined;
+        },
+        message:
+          "Stock quantity must be greater than 0 when in stock, and 0 when out of stock",
+      },
+    },
+  },
+  { _id: true },
 );
 
 const translatedNameSchema = new Schema(
@@ -77,19 +128,14 @@ const productSchema = new Schema(
     name: { type: translatedNameSchema, required: true },
     description: { type: translatedDescriptionSchema, required: true },
 
-    color: {
-      type: colorSchema,
-      default: () => ({ en: "", ar: "", ku: "" }),
-    },
-
-    images: {
-      type: [imageSchema],
+    variants: {
+      type: [variantSchema],
       default: [],
       validate: {
         validator: function (val) {
           return Array.isArray(val) && val.length > 0;
         },
-        message: "At least one image is required",
+        message: "At least one variant is required",
       },
     },
 
@@ -113,7 +159,11 @@ const productSchema = new Schema(
       required: [true, "Brand is required"],
     },
 
-    size: { type: String, enum: ["", "small", "medium", "large"], default: "" },
+    size: {
+      type: String,
+      enum: ["small", "medium", "large"],
+      required: [true, "Size is required"],
+    },
 
     price: {
       type: Number,
@@ -127,7 +177,7 @@ const productSchema = new Schema(
       min: [0, "Discount price cannot be negative"],
       validate: {
         validator: function (val) {
-          return val < this.price;
+          return val === 0 || val < this.price;
         },
         message: "Discount price must be less than the original price",
       },
@@ -141,26 +191,6 @@ const productSchema = new Schema(
           return Array.isArray(val) && val.length > 0;
         },
         message: "At least one keyword is required",
-      },
-    },
-
-    stockStatus: {
-      type: String,
-      enum: ["in_stock", "out_of_stock"],
-      required: [true, "Stock status is required"],
-    },
-
-    stockQuantity: {
-      type: Number,
-      default: 0,
-      min: [0, "Stock cannot be negative"],
-      validate: {
-        validator: function (val) {
-          if (this.stockStatus === "in_stock") return val > 0;
-          return val === 0 || val === undefined;
-        },
-        message:
-          "Stock quantity must be greater than 0 when in stock, and 0 when out of stock",
       },
     },
 

@@ -3,6 +3,33 @@ import { deleteFile } from "../utils/deleteFile.js";
 
 const escapeRegex = value => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+const buildImageObject = file => ({
+  url: `/uploads/products/${file.filename}`,
+  key: `products/${file.filename}`,
+  alt: "",
+  isMain: false,
+});
+
+const buildVariantsWithImages = (variants = [], files = []) => {
+  return variants.map((variant, index) => {
+    const variantFiles = files.filter(
+      file => file.fieldname === `variant_${index}_images`,
+    );
+
+    return {
+      color: variant.color,
+      stockStatus: variant.stockStatus,
+      stockQuantity:
+        variant.stockStatus === "out_of_stock"
+          ? 0
+          : Number(variant.stockQuantity || 0),
+      images: variantFiles.map((file, fileIndex) => ({
+        ...buildImageObject(file),
+        isMain: fileIndex === 0,
+      })),
+    };
+  });
+};
 const getProduct = async (req, res) => {
   const { search = "" } = req.query;
 
@@ -16,7 +43,6 @@ const getProduct = async (req, res) => {
           { "name.ar": { $regex: safeSearch, $options: "i" } },
           { "name.ku": { $regex: safeSearch, $options: "i" } },
           { itemCode: { $regex: safeSearch, $options: "i" } },
-          { keyword: { $regex: safeSearch, $options: "i" } },
         ],
       }
     : {};
@@ -37,7 +63,7 @@ const addProduct = async (req, res) => {
   const {
     name,
     description,
-    color,
+    variants,
     itemCode,
     collectionName,
     brand,
@@ -45,8 +71,6 @@ const addProduct = async (req, res) => {
     price,
     discountPrice,
     keyword,
-    stockStatus,
-    stockQuantity,
     isFeatured,
     rating,
     points,
@@ -54,25 +78,26 @@ const addProduct = async (req, res) => {
     isActive,
   } = req.validated.body;
 
-  if (!req.files || req.files.length === 0) {
-    const err = new Error("At least one product image is required");
+  if (!Array.isArray(variants) || variants.length === 0) {
+    const err = new Error("At least one variant is required");
     err.statusCode = 400;
     throw err;
   }
 
-  const images = req.files.map(file => ({
-    url: `/uploads/products/${file.filename}`,
-    key: `products/${file.filename}`,
-  }));
+  const builtVariants = buildVariantsWithImages(variants, req.files || []);
 
-  const normalizedStockQuantity =
-    stockStatus === "out_of_stock" ? 0 : stockQuantity;
+  for (const variant of builtVariants) {
+    if (!variant.images || variant.images.length === 0) {
+      const err = new Error("Each variant must have at least one image");
+      err.statusCode = 400;
+      throw err;
+    }
+  }
 
   const product = await Product.create({
     name,
     description,
-    images,
-    color,
+    variants: builtVariants,
     itemCode,
     collectionName,
     brand,
@@ -80,8 +105,6 @@ const addProduct = async (req, res) => {
     price,
     discountPrice,
     keyword,
-    stockStatus,
-    stockQuantity: normalizedStockQuantity,
     isFeatured,
     rating,
     points,
@@ -98,10 +121,11 @@ const addProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   const { id } = req.validated.params;
+
   const {
     name,
     description,
-    color,
+    variants,
     itemCode,
     collectionName,
     brand,
@@ -109,8 +133,6 @@ const updateProduct = async (req, res) => {
     price,
     discountPrice,
     keyword,
-    stockStatus,
-    stockQuantity,
     isFeatured,
     rating,
     points,
@@ -142,7 +164,6 @@ const updateProduct = async (req, res) => {
     };
   }
 
-  if (color !== undefined) product.color = color;
   if (itemCode !== undefined) product.itemCode = itemCode;
   if (collectionName !== undefined) product.collectionName = collectionName;
   if (brand !== undefined) product.brand = brand;
@@ -150,50 +171,69 @@ const updateProduct = async (req, res) => {
   if (price !== undefined) product.price = price;
   if (discountPrice !== undefined) product.discountPrice = discountPrice;
   if (keyword !== undefined) product.keyword = keyword;
-  if (stockStatus !== undefined) product.stockStatus = stockStatus;
-  if (stockQuantity !== undefined) product.stockQuantity = stockQuantity;
   if (typeof isFeatured !== "undefined") product.isFeatured = isFeatured;
   if (rating !== undefined) product.rating = rating;
   if (points !== undefined) product.points = points;
   if (cashback !== undefined) product.cashback = cashback;
   if (typeof isActive !== "undefined") product.isActive = isActive;
 
-  if (product.stockStatus === "out_of_stock") {
-    product.stockQuantity = 0;
-  }
-
-  if (
-    product.stockStatus === "in_stock" &&
-    (!product.stockQuantity || product.stockQuantity <= 0)
-  ) {
-    const err = new Error(
-      "Stock quantity must be greater than 0 when stock status is in stock",
-    );
-    err.statusCode = 400;
-    throw err;
-  }
-
-  if (product.discountPrice > product.price) {
+  if (discountPrice !== undefined && discountPrice > product.price) {
     const err = new Error("Discount price cannot be greater than price");
     err.statusCode = 400;
     throw err;
   }
 
-  if (req.files && req.files.length > 0) {
-    const oldImages = product.images || [];
+  // Update variants metadata only if sent
+  if (Array.isArray(variants)) {
+    const existingImagesMap = new Map();
 
-    const newImages = req.files.map(file => ({
-      url: `/uploads/products/${file.filename}`,
-      key: `products/${file.filename}`,
-    }));
+    product.variants.forEach(variant => {
+      existingImagesMap.set(
+        variant._id.toString(),
+        variant.images ? [...variant.images] : [],
+      );
+    });
 
-    product.images = newImages;
+    const newFiles = req.files || [];
 
-    for (const image of oldImages) {
-      if (image?.url) {
-        deleteFile(image.url);
+    product.variants = variants.map((variant, index) => {
+      const existingVariantId = variant._id;
+      const oldImages = existingVariantId
+        ? existingImagesMap.get(String(existingVariantId)) || []
+        : [];
+
+      const uploadedFiles = newFiles.filter(
+        file => file.fieldname === `variant_${index}_images`,
+      );
+
+      let nextImages = oldImages;
+
+      if (uploadedFiles.length > 0) {
+        // 5) update product can delete old images too early
+        // In updateProduct, when uploading new files for one variant, you do this:
+        for (const oldImage of oldImages) {
+          if (oldImage?.url) {
+            deleteFile(oldImage.url);
+          }
+        }
+
+        nextImages = uploadedFiles.map((file, fileIndex) => ({
+          ...buildImageObject(file),
+          isMain: fileIndex === 0,
+        }));
       }
-    }
+
+      return {
+        _id: existingVariantId,
+        color: variant.color,
+        stockStatus: variant.stockStatus,
+        stockQuantity:
+          variant.stockStatus === "out_of_stock"
+            ? 0
+            : Number(variant.stockQuantity || 0),
+        images: nextImages,
+      };
+    });
   }
 
   await product.save();
@@ -201,6 +241,103 @@ const updateProduct = async (req, res) => {
   return res.status(200).json({
     success: true,
     message: "Product updated successfully",
+    product,
+  });
+};
+
+const updateSingleVariantImage = async (req, res) => {
+  const { productId, variantId, imageId } = req.validated.params;
+
+  const product = await Product.findById(productId);
+
+  if (!product) {
+    const err = new Error("Product not found");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  const variant = product.variants.id(variantId);
+
+  if (!variant) {
+    const err = new Error("Variant not found");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  const image = variant.images.id(imageId);
+
+  if (!image) {
+    const err = new Error("Image not found");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  if (!req.file) {
+    const err = new Error("New image file is required");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  if (image?.url) {
+    deleteFile(image.url);
+  }
+
+  image.url = `/uploads/products/${req.file.filename}`;
+  image.key = `products/${req.file.filename}`;
+
+  await product.save();
+
+  return res.status(200).json({
+    success: true,
+    message: "Variant image updated successfully",
+    product,
+  });
+};
+
+const deleteSingleVariantImage = async (req, res) => {
+  const { productId, variantId, imageId } = req.validated.params;
+
+  const product = await Product.findById(productId);
+
+  if (!product) {
+    const err = new Error("Product not found");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  const variant = product.variants.id(variantId);
+
+  if (!variant) {
+    const err = new Error("Variant not found");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  if (!variant.images || variant.images.length <= 1) {
+    const err = new Error("At least one image must remain in this variant");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const image = variant.images.id(imageId);
+
+  if (!image) {
+    const err = new Error("Image not found");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  if (image?.url) {
+    deleteFile(image.url);
+  }
+
+  variant.images.pull(imageId);
+
+  await product.save();
+
+  return res.status(200).json({
+    success: true,
+    message: "Variant image deleted successfully",
     product,
   });
 };
@@ -216,10 +353,14 @@ const deleteProduct = async (req, res) => {
     throw err;
   }
 
-  if (product.images?.length > 0) {
-    for (const img of product.images) {
-      if (img?.url) {
-        deleteFile(img.url);
+  if (product.variants?.length > 0) {
+    for (const variant of product.variants) {
+      if (variant.images?.length > 0) {
+        for (const img of variant.images) {
+          if (img?.url) {
+            deleteFile(img.url);
+          }
+        }
       }
     }
   }
@@ -232,4 +373,11 @@ const deleteProduct = async (req, res) => {
   });
 };
 
-export default { getProduct, addProduct, updateProduct, deleteProduct };
+export default {
+  getProduct,
+  addProduct,
+  updateProduct,
+  updateSingleVariantImage,
+  deleteSingleVariantImage,
+  deleteProduct,
+};

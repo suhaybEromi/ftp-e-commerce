@@ -1,6 +1,6 @@
 const parseProductFormData = (req, res, next) => {
   try {
-    const fields = ["name", "description", "color", "keyword"];
+    const fields = ["name", "description", "keyword", "variants"];
 
     for (const field of fields) {
       if (typeof req.body[field] === "string") {

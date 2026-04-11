@@ -76,7 +76,7 @@ const imageFileSchema = z
   })
   .refine(file => ACCEPTED_IMAGE_TYPES.includes(file.type), {
     message:
-      "Only .jpg, .jpeg, .png, .webp, and .jfif and .gif formats are supported",
+      "Only .jpg, .jpeg, .png, .webp, .jfif and .gif formats are supported",
   });
 
 const preprocessOptionalNumber = schema =>
@@ -111,11 +111,67 @@ const requiredNumberFromInput = message =>
     }),
   );
 
+const variantSchema = z
+  .object({
+    _id: z.string().optional(),
+
+    color: colorSchema,
+
+    stockStatus: z
+      .string()
+      .min(1, "Stock status is required")
+      .refine(val => ["in_stock", "out_of_stock"].includes(val), {
+        message: "Stock status is invalid",
+      }),
+
+    stockQuantity: preprocessOptionalNumber(
+      z.coerce
+        .number()
+        .int("Stock quantity must be an integer")
+        .min(0, "Stock quantity cannot be negative")
+        .optional(),
+    ),
+
+    images: z
+      .array(imageFileSchema)
+      .max(10, "You can upload up to 10 images")
+      .optional(),
+
+    existingImages: z.array(z.any()).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.stockStatus === "in_stock") {
+      if (data.stockQuantity === undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["stockQuantity"],
+          message: "Stock quantity is required when stock is in stock",
+        });
+      } else if (data.stockQuantity <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["stockQuantity"],
+          message:
+            "Stock quantity must be greater than 0 when stock is in stock",
+        });
+      }
+    }
+
+    if (
+      data.stockStatus === "out_of_stock" &&
+      Number(data.stockQuantity || 0) > 0
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["stockQuantity"],
+        message: "Stock quantity must be 0 when product is out of stock",
+      });
+    }
+  });
+
 const baseProductSchema = z.object({
   name: translatedNameSchema,
   description: translatedDescriptionSchema,
-
-  color: colorSchema,
 
   itemCode: z
     .string()
@@ -126,7 +182,9 @@ const baseProductSchema = z.object({
   collectionName: z.string().trim().min(1, "Collection is required"),
   brand: z.string().trim().min(1, "Brand is required"),
 
-  size: z.enum(["small", "medium", "large"]).optional().or(z.literal("")),
+  size: z.enum(["small", "medium", "large"], {
+    message: "Size is required",
+  }),
 
   price: requiredNumberFromInput("Price is required").pipe(
     z.number().positive("Price is required"),
@@ -141,21 +199,6 @@ const baseProductSchema = z.object({
     .array(z.string().trim().min(1, "Keyword cannot be empty"))
     .min(1, "At least one keyword is required")
     .transform(arr => arr.map(item => item.toLowerCase())),
-
-  stockStatus: z
-    .string()
-    .min(1, "Stock status is required")
-    .refine(val => ["in_stock", "out_of_stock"].includes(val), {
-      message: "Stock status is invalid",
-    }),
-
-  stockQuantity: preprocessOptionalNumber(
-    z.coerce
-      .number()
-      .int("Stock quantity must be an integer")
-      .min(0, "Stock quantity cannot be negative")
-      .optional(),
-  ),
 
   isFeatured: z.boolean().default(false),
 
@@ -178,16 +221,12 @@ const baseProductSchema = z.object({
   ),
 
   isActive: z.boolean().default(true),
+
+  variants: z.array(variantSchema).min(1, "At least one variant is required"),
 });
 
-export const createProductSchema = baseProductSchema
-  .extend({
-    productImage: z
-      .array(imageFileSchema)
-      .min(1, "At least one product image is required")
-      .max(2, "You can upload up to 2 images"),
-  })
-  .superRefine((data, ctx) => {
+export const createProductSchema = baseProductSchema.superRefine(
+  (data, ctx) => {
     if (data.discountPrice >= data.price) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -196,40 +235,32 @@ export const createProductSchema = baseProductSchema
       });
     }
 
-    if (data.stockStatus === "in_stock") {
-      if (data.stockQuantity === undefined) {
+    data.variants.forEach((variant, index) => {
+      const newImagesCount = Array.isArray(variant.images)
+        ? variant.images.length
+        : 0;
+
+      if (newImagesCount < 1) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ["stockQuantity"],
-          message: "Stock quantity is required when stock is in stock",
-        });
-      } else if (data.stockQuantity <= 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["stockQuantity"],
-          message:
-            "Stock quantity must be greater than 0 when stock is in stock",
+          path: ["variants", index, "images"],
+          message: "At least one image is required",
         });
       }
-    }
 
-    if (data.stockStatus === "out_of_stock" && data.stockQuantity > 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["stockQuantity"],
-        message: "Stock quantity must be 0 when product is out of stock",
-      });
-    }
-  });
+      if (newImagesCount > 10) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["variants", index, "images"],
+          message: "You can upload up to 10 images",
+        });
+      }
+    });
+  },
+);
 
-export const updateProductSchema = baseProductSchema
-  .extend({
-    productImage: z
-      .array(imageFileSchema)
-      .max(2, "You can upload up to 2 images")
-      .optional(),
-  })
-  .superRefine((data, ctx) => {
+export const updateProductSchema = baseProductSchema.superRefine(
+  (data, ctx) => {
     if (data.discountPrice >= data.price) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -238,61 +269,80 @@ export const updateProductSchema = baseProductSchema
       });
     }
 
-    if (data.stockStatus === "in_stock" && Number(data.stockQuantity) <= 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["stockQuantity"],
-        message: "Stock quantity must be greater than 0 when stock is in stock",
-      });
-    }
+    data.variants.forEach((variant, index) => {
+      const newImagesCount = Array.isArray(variant.images)
+        ? variant.images.length
+        : 0;
+      const oldImagesCount = Array.isArray(variant.existingImages)
+        ? variant.existingImages.length
+        : 0;
 
-    if (
-      data.stockStatus === "out_of_stock" &&
-      Number(data.stockQuantity || 0) > 0
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["stockQuantity"],
-        message: "Stock quantity must be 0 when product is out of stock",
-      });
-    }
-  });
+      if (newImagesCount === 0 && oldImagesCount === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["variants", index, "images"],
+          message: "At least one image is required",
+        });
+      }
 
-export const productDefaultValues = product => ({
+      if (newImagesCount > 10) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["variants", index, "images"],
+          message: "You can upload up to 10 images",
+        });
+      }
+    });
+  },
+);
+
+export const productDefaultValues = initialValues => ({
   name: {
-    en: product?.name?.en || "",
-    ar: product?.name?.ar || "",
-    ku: product?.name?.ku || "",
+    en: initialValues?.name?.en || "",
+    ar: initialValues?.name?.ar || "",
+    ku: initialValues?.name?.ku || "",
   },
   description: {
-    en: product?.description?.en || "",
-    ar: product?.description?.ar || "",
-    ku: product?.description?.ku || "",
+    en: initialValues?.description?.en || "",
+    ar: initialValues?.description?.ar || "",
+    ku: initialValues?.description?.ku || "",
   },
-
-  color: product?.color || { en: "", ar: "", ku: "" },
-
-  itemCode: product?.itemCode || "",
-
-  collectionName: product?.collectionName?._id || product?.collectionName || "",
-  brand: product?.brand?._id || product?.brand || "",
-
-  size: product?.size || "",
-
-  price: product?.price ?? "",
-  discountPrice: product?.discountPrice ?? 0,
-  keyword: product?.keyword || [],
-  stockStatus: product?.stockStatus || "",
-  stockQuantity:
-    product?.stockStatus === "out_of_stock"
-      ? 0
-      : (product?.stockQuantity ?? ""),
-
-  isFeatured: product?.isFeatured ?? false,
-  rating: product?.rating ?? 0,
-  points: product?.points ?? 0,
-  cashback: product?.cashback ?? 0,
-  isActive: product?.isActive ?? true,
-  productImage: [],
-  existingImages: product?.images || [],
+  itemCode: initialValues?.itemCode || "",
+  collectionName: initialValues?.collectionName || "",
+  brand: initialValues?.brand || "",
+  size: initialValues?.size || "",
+  price: initialValues?.price ?? "",
+  discountPrice: initialValues?.discountPrice ?? 0,
+  keyword: initialValues?.keyword || [],
+  isFeatured: initialValues?.isFeatured ?? false,
+  rating: initialValues?.rating ?? 0,
+  points: initialValues?.points ?? 0,
+  cashback: initialValues?.cashback ?? 0,
+  isActive: initialValues?.isActive ?? true,
+  variants:
+    initialValues?.variants?.length > 0
+      ? initialValues.variants.map(variant => ({
+          _id: variant._id || "",
+          color: {
+            en: variant?.color?.en || "",
+            ar: variant?.color?.ar || "",
+            ku: variant?.color?.ku || "",
+          },
+          stockStatus: variant?.stockStatus || "in_stock",
+          stockQuantity:
+            variant?.stockStatus === "out_of_stock"
+              ? 0
+              : (variant?.stockQuantity ?? ""),
+          images: [],
+          existingImages: variant?.existingImages || variant?.images || [],
+        }))
+      : [
+          {
+            color: { en: "", ar: "", ku: "" },
+            stockStatus: "in_stock",
+            stockQuantity: "",
+            images: [],
+            existingImages: [],
+          },
+        ],
 });

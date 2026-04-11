@@ -75,44 +75,44 @@ export default function AddProductPage() {
         "name",
         JSON.stringify(values.name || { en: "", ar: "", ku: "" }),
       );
+
       formData.append(
         "description",
         JSON.stringify(values.description || { en: "", ar: "", ku: "" }),
       );
 
-      formData.append(
-        "color",
-        JSON.stringify(values.color || { en: "", ar: "", ku: "" }),
-      );
-
       formData.append("itemCode", values.itemCode || "");
-
       formData.append("size", values.size || "");
-
       formData.append("keyword", JSON.stringify(values.keyword || []));
       formData.append("collectionName", values.collectionName || "");
       formData.append("brand", values.brand || "");
       formData.append("price", String(values.price ?? ""));
       formData.append("discountPrice", String(values.discountPrice ?? ""));
-      formData.append("stockStatus", values.stockStatus || "in_stock");
-
-      if (values.stockStatus === "in_stock") {
-        formData.append("stockQuantity", String(values.stockQuantity ?? ""));
-      } else {
-        formData.append("stockQuantity", "0");
-      }
-
       formData.append("isFeatured", String(values.isFeatured ?? false));
       formData.append("rating", String(values.rating ?? 0));
       formData.append("points", String(values.points ?? 0));
       formData.append("cashback", String(values.cashback ?? 0));
       formData.append("isActive", String(values.isActive ?? true));
 
-      if (values.productImage?.length) {
-        values.productImage.forEach(file => {
-          formData.append("productImage", file);
+      const variantsPayload = (values.variants || []).map(variant => ({
+        _id: variant._id || undefined,
+        color: variant.color || { en: "" },
+        stockStatus: variant.stockStatus || "in_stock",
+        stockQuantity:
+          variant.stockStatus === "out_of_stock"
+            ? 0
+            : Number(variant.stockQuantity || 0),
+      }));
+
+      formData.append("variants", JSON.stringify(variantsPayload));
+
+      (values.variants || []).forEach((variant, index) => {
+        const files = Array.isArray(variant.images) ? variant.images : [];
+
+        files.forEach(file => {
+          formData.append(`variant_${index}_images`, file);
         });
-      }
+      });
 
       if (editingProduct?._id) {
         await toast.promise(updateProduct(editingProduct._id, formData), {
@@ -151,34 +151,41 @@ export default function AddProductPage() {
         ar: product?.description?.ar || "",
         ku: product?.description?.ku || "",
       },
-
-      color: product?.color || { en: "", ar: "", ku: "" },
-
       itemCode: product?.itemCode || "",
-
       collectionName:
         product?.collectionName?._id || product?.collectionName || "",
       brand: product?.brand?._id || product?.brand || "",
-
       size: product?.size || "",
-
       price: product?.price ?? "",
       discountPrice: product?.discountPrice ?? 0,
       keyword: product?.keyword || [],
-      stockStatus: product?.stockStatus || "in_stock",
-      stockQuantity:
-        product?.stockStatus === "out_of_stock"
-          ? 0
-          : (product?.stockQuantity ?? ""),
-
       isFeatured: product?.isFeatured ?? false,
       rating: product?.rating ?? 0,
       points: product?.points ?? 0,
       cashback: product?.cashback ?? 0,
       isActive: product?.isActive ?? true,
-      productImage: [],
-      existingImages: product?.images || [],
-      currrentImage: product?.images?.[0]?.url || "",
+      variants:
+        product?.variants?.length > 0
+          ? product.variants.map(variant => ({
+              _id: variant?._id || "",
+              color: { en: variant?.color?.en || "" },
+              stockStatus: variant?.stockStatus || "in_stock",
+              stockQuantity:
+                variant?.stockStatus === "out_of_stock"
+                  ? 0
+                  : (variant?.stockQuantity ?? ""),
+              images: [],
+              existingImages: variant?.images || [],
+            }))
+          : [
+              {
+                color: { en: "" },
+                stockStatus: "in_stock",
+                stockQuantity: "",
+                images: [],
+                existingImages: [],
+              },
+            ],
     });
 
     setOpen(true);

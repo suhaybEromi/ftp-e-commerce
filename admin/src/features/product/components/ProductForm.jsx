@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import productLocale from "../locale/product";
 import ImageDragDrop from "../../../components/form/ImageDragDrop";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import {
   createProductSchema,
   productDefaultValues,
@@ -28,10 +28,16 @@ export default function ProductForm({
     setValue,
     watch,
     trigger,
+    control,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(isEdit ? updateProductSchema : createProductSchema),
     defaultValues,
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "variants",
   });
 
   useEffect(() => {
@@ -45,35 +51,15 @@ export default function ProductForm({
   }, [initialValues, reset]);
 
   const isRTL = activeLang === "ar" || activeLang === "ku";
-  const stockStatus = watch("stockStatus");
-  const productImage = watch("productImage");
-  const existingImages = watch("existingImages");
 
   const [keywords, setKeywords] = useState(defaultValues.keyword || []);
   const [input, setInput] = useState("");
-
-  useEffect(() => {
-    if (stockStatus === "out_of_stock") {
-      setValue("stockQuantity", 0, {
-        shouldValidate: false,
-        shouldDirty: true,
-      });
-    }
-
-    if (stockStatus === "") {
-      setValue("stockQuantity", "", {
-        shouldValidate: false,
-        shouldDirty: false,
-      });
-    }
-  }, [stockStatus, setValue]);
 
   const addKeyword = async () => {
     const value = input.trim().toLowerCase();
     if (!value || keywords.includes(value)) return;
 
     const updated = [...keywords, value];
-
     setKeywords(updated);
     setInput("");
 
@@ -87,7 +73,6 @@ export default function ProductForm({
 
   const removeKeyword = async item => {
     const updated = keywords.filter(k => k !== item);
-
     setKeywords(updated);
 
     setValue("keyword", updated, {
@@ -112,8 +97,9 @@ export default function ProductForm({
           dir={isRTL ? "rtl" : "ltr"}
           className="grid grid-cols-1 gap-5 md:grid-cols-2 space-y-5"
         >
+          {/* Item Code */}
           <div className="md:col-span-2">
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-300">
                   {productLocale.fields.itemCode}
@@ -122,8 +108,9 @@ export default function ProductForm({
                   {...register("itemCode")}
                   type="text"
                   placeholder="Item Code"
-                  className={`w-full rounded-3xl border border-slate-700 placeholder:text-slate-600 bg-slate-800 px-3 py-2 text-white outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700
-                  ${isRTL ? "text-right" : "text-left"}`}
+                  className={`w-full rounded-3xl border border-slate-700 placeholder:text-slate-600 bg-slate-800 px-3 py-2 text-white outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700 ${
+                    isRTL ? "text-right" : "text-left"
+                  }`}
                 />
                 {errors?.itemCode?.message && (
                   <p className="mt-2 text-sm text-red-400">
@@ -132,32 +119,7 @@ export default function ProductForm({
                 )}
               </div>
 
-              <div>
-                <label
-                  className={`mb-1 block text-sm font-medium text-slate-300
-                  ${isRTL ? "text-right" : "text-left"}`}
-                >
-                  {productLocale.fields.color}
-                </label>
-                <input
-                  {...register("color.en")}
-                  type="text"
-                  placeholder="Color"
-                  className={`w-full rounded-3xl border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder:text-slate-500 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700
-                  ${isRTL ? "text-right" : "text-left"}`}
-                />
-                {errors?.color?.en?.message && (
-                  <p className="mt-2 text-sm text-red-400">
-                    {errors.color.en.message}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="md:col-span-2">
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-              <div>
+              {/* <div>
                 <label className="mb-1 block text-sm font-medium text-slate-300">
                   {productLocale.fields.nameEn}
                 </label>
@@ -165,8 +127,9 @@ export default function ProductForm({
                   {...register("name.en")}
                   type="text"
                   placeholder="English"
-                  className={`w-full rounded-3xl border border-slate-700 placeholder:text-slate-600 bg-slate-800 px-3 py-2 text-white outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700
-                  ${isRTL ? "text-right" : "text-left"}`}
+                  className={`w-full rounded-3xl border border-slate-700 placeholder:text-slate-600 bg-slate-800 px-3 py-2 text-white outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700 ${
+                    isRTL ? "text-right" : "text-left"
+                  }`}
                 />
                 {errors?.name?.en?.message && (
                   <p className="mt-2 text-sm text-red-400">
@@ -177,8 +140,9 @@ export default function ProductForm({
 
               <div>
                 <label
-                  className={`mb-1 block text-sm font-medium text-slate-300
-                  ${isRTL ? "text-left" : "text-right"}`}
+                  className={`mb-1 block text-sm font-medium text-slate-300 ${
+                    isRTL ? "text-left" : "text-right"
+                  }`}
                 >
                   {productLocale.fields.nameAr}
                 </label>
@@ -186,8 +150,9 @@ export default function ProductForm({
                   {...register("name.ar")}
                   type="text"
                   placeholder="عربي"
-                  className={`w-full rounded-3xl border border-slate-700 bg-slate-800 px-3 py-2 text-white outline-none placeholder:text-slate-500 transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700
-                  ${isRTL ? "text-left" : "text-right"}`}
+                  className={`w-full rounded-3xl border border-slate-700 bg-slate-800 px-3 py-2 text-white outline-none placeholder:text-slate-500 transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700 ${
+                    isRTL ? "text-left" : "text-right"
+                  }`}
                 />
                 {errors?.name?.ar?.message && (
                   <p className="mt-2 text-sm text-red-400">
@@ -198,8 +163,9 @@ export default function ProductForm({
 
               <div>
                 <label
-                  className={`mb-1 block text-sm font-medium text-slate-300
-                  ${isRTL ? "text-left" : "text-right"}`}
+                  className={`mb-1 block text-sm font-medium text-slate-300 ${
+                    isRTL ? "text-left" : "text-right"
+                  }`}
                 >
                   {productLocale.fields.nameKu}
                 </label>
@@ -207,8 +173,79 @@ export default function ProductForm({
                   {...register("name.ku")}
                   type="text"
                   placeholder="کوردی"
-                  className={`w-full rounded-3xl border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder:text-slate-500 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700
-                  ${isRTL ? "text-left" : "text-right"}`}
+                  className={`w-full rounded-3xl border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder:text-slate-500 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700 ${
+                    isRTL ? "text-left" : "text-right"
+                  }`}
+                />
+                {errors?.name?.ku?.message && (
+                  <p className="mt-2 text-sm text-red-400">
+                    {errors.name.ku.message}
+                  </p>
+                )}
+              </div> */}
+            </div>
+          </div>
+
+          {/* Name */}
+          <div className="md:col-span-2">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-300">
+                  {productLocale.fields.nameEn}
+                </label>
+                <input
+                  {...register("name.en")}
+                  type="text"
+                  placeholder="English"
+                  className={`w-full rounded-3xl border border-slate-700 placeholder:text-slate-600 bg-slate-800 px-3 py-2 text-white outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700 ${
+                    isRTL ? "text-right" : "text-left"
+                  }`}
+                />
+                {errors?.name?.en?.message && (
+                  <p className="mt-2 text-sm text-red-400">
+                    {errors.name.en.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  className={`mb-1 block text-sm font-medium text-slate-300 ${
+                    isRTL ? "text-left" : "text-right"
+                  }`}
+                >
+                  {productLocale.fields.nameAr}
+                </label>
+                <input
+                  {...register("name.ar")}
+                  type="text"
+                  placeholder="عربي"
+                  className={`w-full rounded-3xl border border-slate-700 bg-slate-800 px-3 py-2 text-white outline-none placeholder:text-slate-500 transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700 ${
+                    isRTL ? "text-left" : "text-right"
+                  }`}
+                />
+                {errors?.name?.ar?.message && (
+                  <p className="mt-2 text-sm text-red-400">
+                    {errors.name.ar.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  className={`mb-1 block text-sm font-medium text-slate-300 ${
+                    isRTL ? "text-left" : "text-right"
+                  }`}
+                >
+                  {productLocale.fields.nameKu}
+                </label>
+                <input
+                  {...register("name.ku")}
+                  type="text"
+                  placeholder="کوردی"
+                  className={`w-full rounded-3xl border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder:text-slate-500 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700 ${
+                    isRTL ? "text-left" : "text-right"
+                  }`}
                 />
                 {errors?.name?.ku?.message && (
                   <p className="mt-2 text-sm text-red-400">
@@ -219,6 +256,7 @@ export default function ProductForm({
             </div>
           </div>
 
+          {/* Description */}
           <div className="md:col-span-2">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               <div>
@@ -229,8 +267,9 @@ export default function ProductForm({
                   {...register("description.en")}
                   rows={7}
                   placeholder="English"
-                  className={`w-full resize-none rounded-3xl border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder:text-slate-500 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700
-                  ${isRTL ? "text-right" : "text-left"}`}
+                  className={`w-full resize-none rounded-3xl border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder:text-slate-500 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700 ${
+                    isRTL ? "text-right" : "text-left"
+                  }`}
                 />
                 {errors?.description?.en?.message && (
                   <p className="mt-2 text-sm text-red-400">
@@ -241,8 +280,9 @@ export default function ProductForm({
 
               <div>
                 <label
-                  className={`mb-1 block text-sm font-medium text-slate-300
-                  ${isRTL ? "text-left" : "text-right"}`}
+                  className={`mb-1 block text-sm font-medium text-slate-300 ${
+                    isRTL ? "text-left" : "text-right"
+                  }`}
                 >
                   {productLocale.fields.descriptionAr}
                 </label>
@@ -250,8 +290,9 @@ export default function ProductForm({
                   {...register("description.ar")}
                   rows={7}
                   placeholder="عربي"
-                  className={`w-full resize-none rounded-3xl border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder:text-slate-500 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700
-                  ${isRTL ? "text-left" : "text-right"}`}
+                  className={`w-full resize-none rounded-3xl border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder:text-slate-500 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700 ${
+                    isRTL ? "text-left" : "text-right"
+                  }`}
                 />
                 {errors?.description?.ar?.message && (
                   <p className="mt-2 text-sm text-red-400">
@@ -262,8 +303,9 @@ export default function ProductForm({
 
               <div>
                 <label
-                  className={`mb-1 block text-sm font-medium text-slate-300
-                  ${isRTL ? "text-left" : "text-right"}`}
+                  className={`mb-1 block text-sm font-medium text-slate-300 ${
+                    isRTL ? "text-left" : "text-right"
+                  }`}
                 >
                   {productLocale.fields.descriptionKu}
                 </label>
@@ -271,8 +313,9 @@ export default function ProductForm({
                   {...register("description.ku")}
                   rows={7}
                   placeholder="کوردی"
-                  className={`w-full resize-none rounded-3xl border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder:text-slate-500 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700
-                  ${isRTL ? "text-left" : "text-right"}`}
+                  className={`w-full resize-none rounded-3xl border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder:text-slate-500 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700 ${
+                    isRTL ? "text-left" : "text-right"
+                  }`}
                 />
                 {errors?.description?.ku?.message && (
                   <p className="mt-2 text-sm text-red-400">
@@ -283,8 +326,9 @@ export default function ProductForm({
             </div>
           </div>
 
+          {/* Selects */}
           <div className="md:col-span-2">
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-300">
                   {productLocale.fields.collectionName}
@@ -331,25 +375,6 @@ export default function ProductForm({
 
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-300">
-                  {productLocale.fields.stock}
-                </label>
-                <select
-                  {...register("stockStatus")}
-                  className="w-full rounded-3xl border border-slate-700 bg-slate-800 px-4 py-2 text-white outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700"
-                >
-                  <option value="">Select stock</option>
-                  <option value="in_stock">In Stock</option>
-                  <option value="out_of_stock">Out of Stock</option>
-                </select>
-                {errors?.stockStatus?.message && (
-                  <p className="mt-2 text-sm text-red-400">
-                    {errors.stockStatus.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-300">
                   {productLocale.fields.size}
                 </label>
                 <select
@@ -370,26 +395,7 @@ export default function ProductForm({
             </div>
           </div>
 
-          {stockStatus === "in_stock" && (
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-300">
-                {productLocale.fields.stockQuantity}
-              </label>
-              <input
-                {...register("stockQuantity")}
-                type="number"
-                placeholder="Stock Quantity"
-                className={`w-full rounded-3xl border border-slate-700 placeholder:text-slate-600 bg-slate-800 px-3 py-2 text-white outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700
-                ${isRTL ? "text-right" : "text-left"}`}
-              />
-              {errors?.stockQuantity?.message && (
-                <p className="mt-2 text-sm text-red-400">
-                  {errors.stockQuantity.message}
-                </p>
-              )}
-            </div>
-          )}
-
+          {/* Price */}
           <div className="md:col-span-2">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div>
@@ -400,8 +406,9 @@ export default function ProductForm({
                   {...register("price")}
                   type="number"
                   placeholder="Price"
-                  className={`w-full rounded-3xl border border-slate-700 placeholder:text-slate-600 bg-slate-800 px-3 py-2 text-white outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700
-                  ${isRTL ? "text-right" : "text-left"}`}
+                  className={`w-full rounded-3xl border border-slate-700 placeholder:text-slate-600 bg-slate-800 px-3 py-2 text-white outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700 ${
+                    isRTL ? "text-right" : "text-left"
+                  }`}
                 />
                 {errors?.price?.message && (
                   <p className="mt-2 text-sm text-red-400">
@@ -412,8 +419,9 @@ export default function ProductForm({
 
               <div>
                 <label
-                  className={`mb-1 block text-sm font-medium text-slate-300
-                  ${isRTL ? "text-right" : "text-left"}`}
+                  className={`mb-1 block text-sm font-medium text-slate-300 ${
+                    isRTL ? "text-right" : "text-left"
+                  }`}
                 >
                   {productLocale.fields.discountPrice}
                 </label>
@@ -421,8 +429,9 @@ export default function ProductForm({
                   {...register("discountPrice")}
                   type="number"
                   placeholder="Discount Price"
-                  className={`w-full rounded-3xl border border-slate-700 bg-slate-800 px-3 py-2 text-white outline-none placeholder:text-slate-500 transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700
-                  ${isRTL ? "text-right" : "text-left"}`}
+                  className={`w-full rounded-3xl border border-slate-700 bg-slate-800 px-3 py-2 text-white outline-none placeholder:text-slate-500 transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700 ${
+                    isRTL ? "text-right" : "text-left"
+                  }`}
                 />
                 {errors?.discountPrice?.message && (
                   <p className="mt-2 text-sm text-red-400">
@@ -430,11 +439,17 @@ export default function ProductForm({
                   </p>
                 )}
               </div>
+            </div>
+          </div>
 
+          {/* Keywords + Active */}
+          <div className="md:col-span-2">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div>
                 <label
-                  className={`mb-1 block text-sm font-medium text-slate-300
-                  ${isRTL ? "text-right" : "text-left"}`}
+                  className={`mb-1 block text-sm font-medium text-slate-300 ${
+                    isRTL ? "text-right" : "text-left"
+                  }`}
                 >
                   {productLocale.fields.keywords}
                 </label>
@@ -457,8 +472,9 @@ export default function ProductForm({
                     onKeyDown={handleKeyDown}
                     onBlur={addKeyword}
                     placeholder="Write product keywords..."
-                    className={`flex-1 bg-transparent text-sm text-white placeholder:text-slate-500 outline-none
-                    ${isRTL ? "text-right" : "text-left"}`}
+                    className={`flex-1 bg-transparent text-sm text-white placeholder:text-slate-500 outline-none ${
+                      isRTL ? "text-right" : "text-left"
+                    }`}
                   />
                 </div>
                 {errors?.keyword?.message && (
@@ -469,10 +485,7 @@ export default function ProductForm({
               </div>
 
               <div>
-                <div
-                  className="flex items-center justify-between rounded-3xl
-                  border border-slate-800 bg-slate-950 px-4 py-2 mt-4"
-                >
+                <div className="flex items-center justify-between rounded-3xl border border-slate-800 bg-slate-950 px-4 py-2 mt-4">
                   <div>
                     <label className="block text-sm font-medium text-white">
                       {productLocale.fields.isActive}
@@ -492,50 +505,164 @@ export default function ProductForm({
             </div>
           </div>
 
+          {/* Variants */}
           <div className="md:col-span-2">
-            <ImageDragDrop
-              label={productLocale.fields.productImage}
-              value={productImage?.[0] || null}
-              currentImage={
-                isEdit && initialValues?.existingImages?.[0]?.url
-                  ? `${import.meta.env.VITE_API_URL_IMG}${initialValues.existingImages[0].url}`
-                  : ""
-              }
-              onChange={file =>
-                setValue("productImage", file ? [file] : [], {
-                  shouldValidate: true,
-                })
-              }
-              error={
-                errors?.productImage?.message ||
-                errors?.productImage?.[0]?.message
-              }
-            />
-          </div>
+            {fields.map((field, index) => {
+              const variantStockStatus = watch(`variants.${index}.stockStatus`);
+              const variantImages = watch(`variants.${index}.images`);
+              const existingImages =
+                watch(`variants.${index}.existingImages`) || [];
 
-          <div className="md:col-span-2 flex gap-3">
-            <button
-              type="submit"
-              disabled={loading}
-              className="cursor-pointer bg-gray-100 text-black px-5 py-3 rounded-2xl"
-            >
-              {loading
-                ? "Saving..."
-                : isEdit
-                  ? productLocale.actions.update
-                  : productLocale.actions.create}
-            </button>
+              return (
+                <div
+                  key={field.id}
+                  className="mb-5 rounded-3xl border border-slate-800 bg-slate-900/50 p-5 shadow-sm"
+                >
+                  <div className="mb-5 flex items-center justify-between border-b border-slate-800 pb-4">
+                    <div>
+                      <h4 className="text-base font-semibold text-white">
+                        Option {index + 1}
+                      </h4>
+                      <p className="mt-1 text-sm text-slate-400">
+                        Configure color, stock status, and images.
+                      </p>
+                    </div>
 
-            {isEdit && (
+                    {fields.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => remove(index)}
+                        className="inline-flex items-center rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-500/20"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300">
+                        Color EN
+                      </label>
+                      <input
+                        {...register(`variants.${index}.color.en`)}
+                        type="text"
+                        className="w-full rounded-2xl border border-slate-700 bg-slate-800/80 px-4 py-3 text-white"
+                      />
+                      {errors?.variants?.[index]?.color?.en?.message && (
+                        <p className="mt-2 text-sm text-red-400">
+                          {errors.variants[index].color.en.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300">
+                        Stock Status
+                      </label>
+                      <select
+                        {...register(`variants.${index}.stockStatus`)}
+                        className="w-full rounded-2xl border border-slate-700 bg-slate-800/80 px-4 py-3 text-white"
+                      >
+                        <option value="">Select stock</option>
+                        <option value="in_stock">In Stock</option>
+                        <option value="out_of_stock">Out of Stock</option>
+                      </select>
+                      {errors?.variants?.[index]?.stockStatus?.message && (
+                        <p className="mt-2 text-sm text-red-400">
+                          {errors.variants[index].stockStatus.message}
+                        </p>
+                      )}
+                    </div>
+
+                    {variantStockStatus === "in_stock" && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-300">
+                          Stock Quantity
+                        </label>
+                        <input
+                          {...register(`variants.${index}.stockQuantity`)}
+                          type="number"
+                          placeholder="Stock Quantity"
+                          className="w-full rounded-2xl border border-slate-700 bg-slate-800/80 px-4 py-3 text-white"
+                        />
+                        {errors?.variants?.[index]?.stockQuantity?.message && (
+                          <p className="mt-2 text-sm text-red-400">
+                            {errors.variants[index].stockQuantity.message}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="md:col-span-2 rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
+                      <ImageDragDrop
+                        label={`Variant ${index + 1} Images`}
+                        value={variantImages || []}
+                        currentImages={(existingImages || []).map(
+                          img =>
+                            `${import.meta.env.VITE_API_URL_IMG}${img.url}`,
+                        )}
+                        multiple
+                        onChange={files =>
+                          setValue(`variants.${index}.images`, files || [], {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          })
+                        }
+                        error={
+                          errors?.variants?.[index]?.images?.message ||
+                          errors?.variants?.[index]?.images?.[0]?.message
+                        }
+                        previewClassName="h-28 w-28 rounded-xl object-cover border border-slate-700"
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            <div className="flex items-center justify-end rounded-3xl px-5 py-4">
               <button
                 type="button"
-                onClick={onCancelEdit}
-                className="cursor-pointer rounded-2xl bg-slate-800 hover:bg-slate-900 px-5 py-2 text-white"
+                onClick={() =>
+                  append({
+                    color: { en: "", ar: "", ku: "" },
+                    stockStatus: "in_stock",
+                    stockQuantity: "",
+                    images: [],
+                    existingImages: [],
+                  })
+                }
+                className="inline-flex items-center rounded-2xl bg-white px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-200"
               >
-                {productLocale.actions.cancel}
+                Add Option
               </button>
-            )}
+            </div>
           </div>
+        </div>
+
+        <div className="md:col-span-2 flex gap-3 my-5">
+          <button
+            type="submit"
+            disabled={loading}
+            className="cursor-pointer bg-gray-100 text-black px-5 py-3 rounded-2xl"
+          >
+            {loading
+              ? "Saving..."
+              : isEdit
+                ? productLocale.actions.update
+                : productLocale.actions.create}
+          </button>
+
+          {isEdit && (
+            <button
+              type="button"
+              onClick={onCancelEdit}
+              className="cursor-pointer rounded-2xl bg-slate-800 hover:bg-slate-900 px-5 py-2 text-white"
+            >
+              {productLocale.actions.cancel}
+            </button>
+          )}
         </div>
       </form>
     </div>
