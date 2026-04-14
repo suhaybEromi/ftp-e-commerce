@@ -128,6 +128,13 @@ const productSchema = new Schema(
     name: { type: translatedNameSchema, required: true },
     description: { type: translatedDescriptionSchema, required: true },
 
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: [true, "Creator is required"],
+    },
+
+    // Variants for optional
     variants: {
       type: [variantSchema],
       default: [],
@@ -181,6 +188,27 @@ const productSchema = new Schema(
         },
         message: "Discount price must be less than the original price",
       },
+    },
+
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+
+    // Warranty
+    warranty: {
+      duration: {
+        type: Number,
+        min: [0, "Warranty duration cannot be negative"],
+        default: 1,
+      },
+      unit: {
+        type: String,
+        enum: ["days", "weeks", "months", "years"],
+        default: "days",
+      },
+      description: { type: String, trim: true, default: "" },
     },
 
     keyword: {

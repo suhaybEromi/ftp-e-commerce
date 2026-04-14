@@ -169,6 +169,30 @@ const variantSchema = z
     }
   });
 
+const warrantySchema = z
+  .object({
+    duration: z.preprocess(
+      val =>
+        val === "" || val === null || val === undefined
+          ? undefined
+          : Number(val),
+      z
+        .number()
+        .min(0, "Warranty duration cannot be negative")
+        .optional()
+        .default(1),
+    ),
+    unit: z
+      .enum(["days", "weeks", "months", "years"])
+      .optional()
+      .default("days"),
+    description: z.preprocess(
+      val => (val === "" ? undefined : val),
+      z.string().trim().optional().default(""),
+    ),
+  })
+  .optional();
+
 const baseProductSchema = z.object({
   name: translatedNameSchema,
   description: translatedDescriptionSchema,
@@ -199,6 +223,8 @@ const baseProductSchema = z.object({
     .array(z.string().trim().min(1, "Keyword cannot be empty"))
     .min(1, "At least one keyword is required")
     .transform(arr => arr.map(item => item.toLowerCase())),
+
+  warranty: warrantySchema,
 
   isFeatured: z.boolean().default(false),
 
@@ -296,6 +322,14 @@ export const updateProductSchema = baseProductSchema.superRefine(
   },
 );
 
+export const updateProductStatusSchema = z.object({
+  status: z.enum(["approved", "rejected", "pending"], {
+    errorMap: () => ({
+      message: "Status must be approve or reject or pending",
+    }),
+  }),
+});
+
 export const productDefaultValues = initialValues => ({
   name: {
     en: initialValues?.name?.en || "",
@@ -319,6 +353,11 @@ export const productDefaultValues = initialValues => ({
   points: initialValues?.points ?? 0,
   cashback: initialValues?.cashback ?? 0,
   isActive: initialValues?.isActive ?? true,
+  warranty: {
+    duration: initialValues?.warranty?.duration ?? 1,
+    unit: initialValues?.warranty?.unit ?? "days",
+    description: initialValues?.warranty?.description ?? "",
+  },
   variants:
     initialValues?.variants?.length > 0
       ? initialValues.variants.map(variant => ({

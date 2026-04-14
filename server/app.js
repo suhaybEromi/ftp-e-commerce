@@ -9,25 +9,28 @@ import errorHandler from "./middlewares/errorHandler.js";
 import path from "path";
 
 const app = express();
+app.use(express.json());
 app.use(cookieParser());
 
+app.use(
+  cors({
+    origin: [process.env.CLIENT_URL],
+    credentials: true,
+  }),
+);
+
+app.use("/uploads", express.static(path.resolve("uploads")));
+
+import userRoutes from "./routes/user.routes.js";
 import brandRoutes from "./routes/brand.routes.js";
 import categoryRoutes from "./routes/category.routes.js";
 import subCategoryRoutes from "./routes/subCategory.routes.js";
 import collectionRoutes from "./routes/collection.routes.js";
 import productRoutes from "./routes/product.routes.js";
 
-app.use(
-  cors({
-    origin: [process.env.CLIENT_URL],
-  }),
-);
-
-app.use(express.json());
-app.use("/uploads", express.static(path.resolve("uploads")));
-
 const prefix = `/${process.env.PREFIX_ROUTES}`;
 
+app.use(`${prefix}/user`, userRoutes);
 app.use(`${prefix}/brand`, brandRoutes);
 app.use(`${prefix}/category`, categoryRoutes);
 app.use(`${prefix}/subcategory`, subCategoryRoutes);

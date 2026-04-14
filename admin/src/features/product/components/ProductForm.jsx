@@ -95,11 +95,11 @@ export default function ProductForm({
       <form onSubmit={handleSubmit(onSubmit)}>
         <div
           dir={isRTL ? "rtl" : "ltr"}
-          className="grid grid-cols-1 gap-5 md:grid-cols-2 space-y-5"
+          className="grid grid-cols-1 gap-5 md:grid-cols-2 space-y-4"
         >
           {/* Item Code */}
           <div className="md:col-span-2">
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-300">
                   {productLocale.fields.itemCode}
@@ -119,7 +119,7 @@ export default function ProductForm({
                 )}
               </div>
 
-              {/* <div>
+              <div>
                 <label className="mb-1 block text-sm font-medium text-slate-300">
                   {productLocale.fields.nameEn}
                 </label>
@@ -182,12 +182,12 @@ export default function ProductForm({
                     {errors.name.ku.message}
                   </p>
                 )}
-              </div> */}
+              </div>
             </div>
           </div>
 
           {/* Name */}
-          <div className="md:col-span-2">
+          {/* <div className="md:col-span-2">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-300">
@@ -254,7 +254,7 @@ export default function ProductForm({
                 )}
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Description */}
           <div className="md:col-span-2">
@@ -485,7 +485,7 @@ export default function ProductForm({
               </div>
 
               <div>
-                <div className="flex items-center justify-between rounded-3xl border border-slate-800 bg-slate-950 px-4 py-2 mt-4">
+                <div className="flex items-center justify-between rounded-3xl border border-slate-800 bg-slate-950 px-4 py-2 mt-4.5">
                   <div>
                     <label className="block text-sm font-medium text-white">
                       {productLocale.fields.isActive}
@@ -501,6 +501,70 @@ export default function ProductForm({
                     className="h-5 w-5 accent-white"
                   />
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Warranty */}
+          <div className="md:col-span-2">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-300">
+                  {productLocale.fields.warranty.duration}
+                </label>
+                <input
+                  {...register("warranty.duration")}
+                  type="number"
+                  placeholder="Duration"
+                  className={`w-full rounded-3xl border border-slate-700 placeholder:text-slate-600 bg-slate-800
+                  px-3 py-2 text-white outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700
+                  ${isRTL ? "text-right" : "text-left"}`}
+                />
+                {errors?.warranty?.duration?.message && (
+                  <p className="mt-2 text-sm text-red-400">
+                    {errors.warranty.duration.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-300">
+                  {productLocale.fields.warranty.value}
+                </label>
+                <select
+                  {...register("warranty.unit")}
+                  className="w-full rounded-3xl border border-slate-700 bg-slate-800 px-4 py-2 text-white outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700"
+                >
+                  <option value="">Select Warranty</option>
+                  <option value="days">Days</option>
+                  <option value="weeks">Weeks</option>
+                  <option value="months">Months</option>
+                  <option value="years">Years</option>
+                </select>
+                {errors?.warranty?.unit?.message && (
+                  <p className="mt-2 text-sm text-red-400">
+                    {errors.warranty.unit.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-300">
+                  {productLocale.fields.warranty.description}
+                </label>
+                <textarea
+                  {...register("warranty.description")}
+                  rows={4}
+                  placeholder="Description"
+                  className={`w-full resize-none rounded-3xl border border-slate-700 bg-slate-800
+                  px-3 py-2 text-white placeholder:text-slate-500 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-700
+                  ${isRTL ? "text-right" : "text-left"}`}
+                />
+                {errors?.warranty?.description?.message && (
+                  <p className="mt-2 text-sm text-red-400">
+                    {errors.warranty.description.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -524,7 +588,9 @@ export default function ProductForm({
                         Option {index + 1}
                       </h4>
                       <p className="mt-1 text-sm text-slate-400">
-                        Configure color, stock status, and images.
+                        Configure {productLocale.fields.color} ,
+                        {productLocale.fields.stockStatus} ,
+                        {productLocale.fields.productImage}
                       </p>
                     </div>
 
@@ -542,11 +608,12 @@ export default function ProductForm({
                   <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                     <div>
                       <label className="block text-sm font-medium text-slate-300">
-                        Color EN
+                        {productLocale.fields.color}
                       </label>
                       <input
                         {...register(`variants.${index}.color.en`)}
                         type="text"
+                        placeholder="Color"
                         className="w-full rounded-2xl border border-slate-700 bg-slate-800/80 px-4 py-3 text-white"
                       />
                       {errors?.variants?.[index]?.color?.en?.message && (
@@ -558,7 +625,7 @@ export default function ProductForm({
 
                     <div>
                       <label className="block text-sm font-medium text-slate-300">
-                        Stock Status
+                        {productLocale.fields.stockStatus}
                       </label>
                       <select
                         {...register(`variants.${index}.stockStatus`)}
@@ -578,7 +645,7 @@ export default function ProductForm({
                     {variantStockStatus === "in_stock" && (
                       <div>
                         <label className="block text-sm font-medium text-slate-300">
-                          Stock Quantity
+                          {productLocale.fields.stockQuantity}
                         </label>
                         <input
                           {...register(`variants.${index}.stockQuantity`)}
@@ -633,7 +700,8 @@ export default function ProductForm({
                     existingImages: [],
                   })
                 }
-                className="inline-flex items-center rounded-2xl bg-white px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-200"
+                className="cursor-pointer inline-flex items-center rounded-2xl bg-white
+                px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-200"
               >
                 Add Option
               </button>

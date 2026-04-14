@@ -24,6 +24,12 @@ export const updateProduct = async (id, formData) => {
   return data;
 };
 
+export const updateStatus = async (id, status) => {
+  const { data } = await api.put(`/product/update-status/${id}`, { status });
+
+  return data;
+};
+
 export const updateSingleVariantImage = async (
   productId,
   variantId,

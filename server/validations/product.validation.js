@@ -83,6 +83,30 @@ const zVariant = z
     }
   });
 
+const zWarranty = z
+  .object({
+    duration: z.preprocess(
+      val =>
+        val === "" || val === null || val === undefined
+          ? undefined
+          : Number(val),
+      z
+        .number()
+        .min(0, "Warranty duration cannot be negative")
+        .optional()
+        .default(1),
+    ),
+    unit: z
+      .enum(["days", "weeks", "months", "years"])
+      .optional()
+      .default("days"),
+    description: z.preprocess(
+      val => (val === "" ? undefined : val),
+      z.string().trim().optional().default(""),
+    ),
+  })
+  .optional();
+
 export const createProductSchema = z.object({
   body: z
     .object({
@@ -117,6 +141,8 @@ export const createProductSchema = z.object({
         .array(z.string().trim().min(1, "Keyword cannot be empty"))
         .min(1, "At least one keyword is required")
         .transform(arr => arr.map(item => item.toLowerCase())),
+
+      warranty: zWarranty,
 
       isFeatured: zBooleanFromFormData.optional().default(false),
 
@@ -192,6 +218,8 @@ export const updateProductSchema = z.object({
         .transform(arr => arr.map(item => item.toLowerCase()))
         .optional(),
 
+      warranty: zWarranty,
+
       isFeatured: zBooleanFromFormData.optional(),
       rating: optionalNumberFromFormData.pipe(
         z
@@ -231,6 +259,19 @@ export const updateProductSchema = z.object({
   }),
 
   query: z.object({}),
+});
+
+export const updateProductStatusSchema = z.object({
+  params: z.object({
+    id: z.string().min(1, "Product id is required"),
+  }),
+  body: z.object({
+    status: z.enum(["approved", "rejected", "pending"], {
+      errorMap: () => ({
+        message: "Status must be approve or reject or pending",
+      }),
+    }),
+  }),
 });
 
 export const deleteProductSchema = z.object({

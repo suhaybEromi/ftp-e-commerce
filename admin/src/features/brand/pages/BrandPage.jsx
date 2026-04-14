@@ -11,6 +11,7 @@ import {
 import toast from "react-hot-toast";
 import { getErrorMessage } from "../../utils/getErrorMessage";
 import brandLocale from "../locale/brand";
+import { authContext } from "../../../contexts/AuthContext";
 
 export default function BrandPage() {
   const [open, setOpen] = useState(false);

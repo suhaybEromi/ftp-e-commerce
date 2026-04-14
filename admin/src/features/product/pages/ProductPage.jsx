@@ -5,6 +5,7 @@ import {
   deleteProduct,
   getProducts,
   updateProduct,
+  updateStatus,
 } from "../../services/product.service";
 import productLocale from "../locale/product";
 import { getErrorMessage } from "../../utils/getErrorMessage";
@@ -12,6 +13,7 @@ import toast from "react-hot-toast";
 import { getCollection } from "../../services/collection.service";
 import { getBrands } from "../../services/brand.service";
 import ProductTable from "./ProductTable";
+import { updateProductStatusSchema } from "../schema";
 
 export default function ProductPage() {
   const [open, setOpen] = useState(false);
@@ -92,6 +94,27 @@ export default function ProductPage() {
       formData.append("cashback", String(values.cashback ?? 0));
       formData.append("isActive", String(values.isActive ?? true));
 
+      const hasWarranty =
+        (values.warranty?.duration !== undefined &&
+          values.warranty?.duration !== "") ||
+        !!values.warranty?.unit ||
+        !!values.warranty?.description;
+
+      if (hasWarranty) {
+        formData.append(
+          "warranty",
+          JSON.stringify({
+            duration:
+              values.warranty?.duration !== undefined &&
+              values.warranty?.duration !== ""
+                ? Number(values.warranty.duration)
+                : undefined,
+            unit: values.warranty?.unit || undefined,
+            description: values.warranty?.description || undefined,
+          }),
+        );
+      }
+
       const variantsPayload = (values.variants || []).map(variant => ({
         _id: variant._id || undefined,
         color: variant.color || { en: "" },
@@ -130,6 +153,20 @@ export default function ProductPage() {
     }
   };
 
+  const updateStatusChange = async (id, status) => {
+    try {
+      await toast.promise(updateStatus(id, status), {
+        loading: productLocale?.messages?.updatingStatus,
+        success: productLocale?.messages?.updatedStatus,
+        error: err => getErrorMessage(err),
+      });
+
+      await fetchProducts();
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    }
+  };
+
   const handleEdit = async product => {
     setEditingProduct({
       _id: product?._id || "",
@@ -155,7 +192,11 @@ export default function ProductPage() {
       price: product?.price ?? "",
       discountPrice: product?.discountPrice ?? 0,
       keyword: product?.keyword || [],
-
+      warranty: {
+        duration: product?.warranty?.duration ?? 1,
+        unit: product?.warranty?.unit || "days",
+        description: product?.warranty?.description || "",
+      },
       isFeatured: product?.isFeatured ?? false,
       rating: product?.rating ?? 0,
       points: product?.points ?? 0,
@@ -253,6 +294,7 @@ export default function ProductPage() {
           products={products}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onStatusChange={updateStatusChange}
         />
       </div>
     </>

@@ -8,6 +8,18 @@ const brandSchema = new Schema(
       ar: { type: String, required: [true, "Arabic name is required"] },
       ku: { type: String, required: [true, "Kurdish name is required"] },
     },
+
+    // NOTE: The same code with category and sub category, collection and product.
+    // tenantId: { type: Schema.Types.ObjectId, ref: "Tenant", default: null },
+
+    // scope: { type: String, enum: ["private", "global"], default: "private" },
+
+    // createdBy: {
+    //   type: Schema.Types.ObjectId,
+    //   ref: "User",
+    //   required: [true, "Creator is required"],
+    // },
+
     images: {
       type: [
         {

@@ -10,6 +10,8 @@ import {
   deleteBrandSchema,
 } from "../validations/brand.validation.js";
 import { uploadFile } from "../middlewares/uploadFile.js";
+import authMiddleware from "../middlewares/auth.js";
+import authorizeRoles from "../middlewares/authorizeRoles.js";
 
 const router = express.Router();
 
@@ -17,6 +19,8 @@ router.get("/", asyncHandler(brandController.getBrand));
 
 router.post(
   "/",
+  // authMiddleware,
+  // authorizeRoles("super_admin", "admin"),
   uploadFile.single("brandImage"),
   validate(createBrandSchema),
   asyncHandler(brandController.addBrand),

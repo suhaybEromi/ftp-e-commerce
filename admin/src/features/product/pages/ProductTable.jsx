@@ -5,7 +5,12 @@ import Spinner from "../../../components/form/Spinner";
 const classTitle =
   "px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400";
 
-export default function ProductTable({ products, onEdit, onDelete }) {
+export default function ProductTable({
+  products,
+  onEdit,
+  onDelete,
+  onStatusChange,
+}) {
   if (products === null) {
     return <Spinner />;
   }
@@ -31,6 +36,7 @@ export default function ProductTable({ products, onEdit, onDelete }) {
               <th className={classTitle}>Price</th>
               <th className={classTitle}>Discount</th>
               <th className={classTitle}>Stock</th>
+              <th className={classTitle}>Active</th>
               <th className={classTitle}>Status</th>
               <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Actions
@@ -55,7 +61,7 @@ export default function ProductTable({ products, onEdit, onDelete }) {
                         className="h-14 w-14 rounded-2xl border border-slate-700 object-cover"
                       />
 
-                      <div className="min-w-0">
+                      <div className="min-w-0 max-w-50">
                         <p className="truncate font-semibold text-white">
                           {product?.name?.en || "No name"}
                         </p>
@@ -101,6 +107,20 @@ export default function ProductTable({ products, onEdit, onDelete }) {
                         Inactive
                       </span>
                     )}
+                  </td>
+
+                  <td className="whitespace-nowrap px-6 py-4">
+                    <select
+                      value={product?.status || "pending"}
+                      onChange={e =>
+                        onStatusChange(product._id, e.target.value)
+                      }
+                      className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white outline-none"
+                    >
+                      <option value="pending">⌛ Pending</option>
+                      <option value="approved">✅ Approved</option>
+                      <option value="rejected">❌ Rejected</option>
+                    </select>
                   </td>
 
                   <td className="whitespace-nowrap px-6 py-4">

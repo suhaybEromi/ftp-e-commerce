@@ -94,6 +94,27 @@ export default function AddProductPage() {
       formData.append("cashback", String(values.cashback ?? 0));
       formData.append("isActive", String(values.isActive ?? true));
 
+      const hasWarranty =
+        (values.warranty?.duration !== undefined &&
+          values.warranty?.duration !== "") ||
+        !!values.warranty?.unit ||
+        !!values.warranty?.description;
+
+      if (hasWarranty) {
+        formData.append(
+          "warranty",
+          JSON.stringify({
+            duration:
+              values.warranty?.duration !== undefined &&
+              values.warranty?.duration !== ""
+                ? Number(values.warranty.duration)
+                : undefined,
+            unit: values.warranty?.unit || undefined,
+            description: values.warranty?.description || undefined,
+          }),
+        );
+      }
+
       const variantsPayload = (values.variants || []).map(variant => ({
         _id: variant._id || undefined,
         color: variant.color || { en: "" },
@@ -159,6 +180,11 @@ export default function AddProductPage() {
       price: product?.price ?? "",
       discountPrice: product?.discountPrice ?? 0,
       keyword: product?.keyword || [],
+      warranty: {
+        duration: product?.warranty?.duration ?? 1,
+        unit: product?.warranty?.unit || "days",
+        description: product?.warranty?.description || "",
+      },
       isFeatured: product?.isFeatured ?? false,
       rating: product?.rating ?? 0,
       points: product?.points ?? 0,

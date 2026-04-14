@@ -30,6 +30,7 @@ const buildVariantsWithImages = (variants = [], files = []) => {
     };
   });
 };
+
 const getProduct = async (req, res) => {
   const { search = "" } = req.query;
 
@@ -46,6 +47,12 @@ const getProduct = async (req, res) => {
         ],
       }
     : {};
+
+  const isAdmin = req.user.role === "super_admin" || req.user.role === "admin";
+
+  if (!isAdmin) {
+    searchQuery.createdBy = req.user.id;
+  }
 
   const products = await Product.find(searchQuery)
     .sort({ createdAt: -1 })
@@ -71,6 +78,7 @@ const addProduct = async (req, res) => {
     price,
     discountPrice,
     keyword,
+    warranty,
     isFeatured,
     rating,
     points,
@@ -94,6 +102,9 @@ const addProduct = async (req, res) => {
     }
   }
 
+  // const normalizedWarranty =
+  // warranty && Object.keys(warranty).length > 0 ? warranty : undefined;
+
   const product = await Product.create({
     name,
     description,
@@ -105,11 +116,14 @@ const addProduct = async (req, res) => {
     price,
     discountPrice,
     keyword,
+    status: "pending",
+    warranty,
     isFeatured,
     rating,
     points,
     cashback,
     isActive,
+    createdBy: req.user.id,
   });
 
   return res.status(201).json({
@@ -133,6 +147,7 @@ const updateProduct = async (req, res) => {
     price,
     discountPrice,
     keyword,
+    warranty,
     isFeatured,
     rating,
     points,
@@ -171,6 +186,16 @@ const updateProduct = async (req, res) => {
   if (price !== undefined) product.price = price;
   if (discountPrice !== undefined) product.discountPrice = discountPrice;
   if (keyword !== undefined) product.keyword = keyword;
+  if (warranty !== undefined) product.warranty = warranty;
+
+  // if (warranty !== undefined) {
+  //   if (!warranty || Object.keys(warranty).length === 0) {
+  //     product.warranty = undefined;
+  //   } else {
+  //     product.warranty = warranty;
+  //   }
+  // }
+
   if (typeof isFeatured !== "undefined") product.isFeatured = isFeatured;
   if (rating !== undefined) product.rating = rating;
   if (points !== undefined) product.points = points;
@@ -242,6 +267,35 @@ const updateProduct = async (req, res) => {
     success: true,
     message: "Product updated successfully",
     product,
+  });
+};
+
+const updateStatus = async (req, res) => {
+  const { status } = req.validated.body;
+  const { id } = req.validated.params;
+
+  if (!["approved", "rejected", "pending"].includes(status)) {
+    const err = new Error("Status must be approve or reject or pending");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const item = await Product.findById(id);
+
+  if (!item) {
+    const err = new Error("Item not found");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  item.status = status;
+
+  await item.save();
+
+  return res.status(200).json({
+    success: true,
+    message: `Status ${status} successfully`,
+    item,
   });
 };
 
@@ -377,6 +431,7 @@ export default {
   getProduct,
   addProduct,
   updateProduct,
+  updateStatus,
   updateSingleVariantImage,
   deleteSingleVariantImage,
   deleteProduct,
