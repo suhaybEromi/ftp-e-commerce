@@ -8,25 +8,38 @@ import cors from "cors";
 import errorHandler from "./middlewares/errorHandler.js";
 import path from "path";
 
-const app = express();
-app.use(express.json());
-app.use(cookieParser());
-
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    credentials: true,
-  }),
-);
-
-app.use("/uploads", express.static(path.resolve("uploads")));
-
 import userRoutes from "./routes/user.routes.js";
 import brandRoutes from "./routes/brand.routes.js";
 import categoryRoutes from "./routes/category.routes.js";
 import subCategoryRoutes from "./routes/subCategory.routes.js";
 import collectionRoutes from "./routes/collection.routes.js";
 import productRoutes from "./routes/product.routes.js";
+
+const app = express();
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://ibsher.com",
+  "https://www.ibsher.com",
+  "https://admin.ibsher.com",
+];
+
+app.use(express.json());
+app.use(cookieParser());
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  }),
+);
+
+app.use("/uploads", express.static(path.resolve("uploads")));
 
 const prefix = `/${process.env.PREFIX_ROUTES}`;
 
@@ -50,4 +63,5 @@ const connectDB = async () => {
     console.log("Database connection failed", err);
   }
 };
+
 connectDB();
