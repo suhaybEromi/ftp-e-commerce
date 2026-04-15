@@ -19,35 +19,33 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-app.use(
-  cors({
-    // origin: "http://localhost:5173",
-    origin: "https://admin.ibsher.com",
-    credentials: true,
-  }),
-);
-
-// const allowedOrigins = [
-//   "http://localhost:5173",
-//   "https://ibsher.com",
-//   "https://www.ibsher.com",
-//   "https://admin.ibsher.com",
-// ];
-
-// app.use(express.json());
-// app.use(cookieParser());
-
 // app.use(
 //   cors({
-//     origin(origin, callback) {
-//       if (!origin || allowedOrigins.includes(origin)) {
-//         return callback(null, true);
-//       }
-//       return callback(new Error("Not allowed by CORS"));
-//     },
+//     // origin: "http://localhost:5173",
+//     origin: "https://admin.ibsher.com",
 //     credentials: true,
 //   }),
 // );
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://admin.ibsher.com",
+  "https://ibsher.com",
+  "https://www.ibsher.com",
+];
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 app.use("/uploads", express.static(path.resolve("uploads")));
 
