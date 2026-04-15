@@ -16,22 +16,12 @@ import collectionRoutes from "./routes/collection.routes.js";
 import productRoutes from "./routes/product.routes.js";
 
 const app = express();
-app.use(express.json());
-app.use(cookieParser());
-
-// app.use(
-//   cors({
-//     // origin: "http://localhost:5173",
-//     origin: "https://admin.ibsher.com",
-//     credentials: true,
-//   }),
-// );
 
 const allowedOrigins = [
-  "http://localhost:5173",
-  "https://admin.ibsher.com",
-  "https://ibsher.com",
-  "https://www.ibsher.com",
+  process.env.CLIENT_LOCAL,
+  process.env.CLIENT_ADMIN,
+  process.env.CLIENT_ALL,
+  process.env.CLIENT_ALL_W,
 ];
 
 const corsOptions = {
@@ -45,7 +35,10 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
+
+app.use(express.json());
+app.use(cookieParser());
 
 app.use("/uploads", express.static(path.resolve("uploads")));
 
