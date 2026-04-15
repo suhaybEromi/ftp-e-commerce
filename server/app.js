@@ -16,28 +16,38 @@ import collectionRoutes from "./routes/collection.routes.js";
 import productRoutes from "./routes/product.routes.js";
 
 const app = express();
-
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://ibsher.com",
-  "https://www.ibsher.com",
-  "https://admin.ibsher.com",
-];
-
 app.use(express.json());
 app.use(cookieParser());
 
 app.use(
   cors({
-    origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("Not allowed by CORS"));
-    },
+    // origin: "http://localhost:5173",
+    origin: "https://admin.ibsher.com",
     credentials: true,
   }),
 );
+
+// const allowedOrigins = [
+//   "http://localhost:5173",
+//   "https://ibsher.com",
+//   "https://www.ibsher.com",
+//   "https://admin.ibsher.com",
+// ];
+
+// app.use(express.json());
+// app.use(cookieParser());
+
+// app.use(
+//   cors({
+//     origin(origin, callback) {
+//       if (!origin || allowedOrigins.includes(origin)) {
+//         return callback(null, true);
+//       }
+//       return callback(new Error("Not allowed by CORS"));
+//     },
+//     credentials: true,
+//   }),
+// );
 
 app.use("/uploads", express.static(path.resolve("uploads")));
 
