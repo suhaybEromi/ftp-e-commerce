@@ -41,8 +41,8 @@ router.get(
 // User management
 router.post(
   "/create-user",
-  // authMiddleware,
-  // authorizeRoles("super_admin"),
+  authMiddleware,
+  authorizeRoles("super_admin"),
   validate(createUserSchema),
   asyncHandler(userController.createUser),
 );

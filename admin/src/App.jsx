@@ -54,11 +54,11 @@ function App() {
             </Route>
           </Route>
 
-          {/* <Route
+          <Route
             element={<RoleProtectedRoute allowedRoles={["super_admin"]} />}
-          > */}
-          <Route path="/signup" element={<SignupForm />} />
-          {/* </Route> */}
+          >
+            <Route path="/signup" element={<SignupForm />} />
+          </Route>
 
           <Route element={<PublicRoute />}>
             <Route path="/login" element={<LoginForm />} />
