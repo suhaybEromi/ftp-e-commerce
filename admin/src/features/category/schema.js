@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_FILE_SIZE = 8 * 1024 * 1024;
 
 const ACCEPTED_IMAGE_TYPES = [
   "image/jpeg",
@@ -35,7 +35,7 @@ export const createCategorySchema = z.object({
     .refine(file => file instanceof File, "Category image is required")
     .refine(
       file => !file || file.size <= MAX_FILE_SIZE,
-      "Max image size in 5MB",
+      "Max image size in 8MB",
     )
     .refine(
       file => !file || ACCEPTED_IMAGE_TYPES.includes(file.type),
@@ -54,7 +54,7 @@ export const updateCategorySchema = z
       .refine(file => !file || file instanceof File, "Invalid image file")
       .refine(
         file => !file || file.size <= MAX_FILE_SIZE,
-        "Max image size is 5MB",
+        "Max image size is 8MB",
       )
       .refine(
         file => !file || ACCEPTED_IMAGE_TYPES.includes(file.type),

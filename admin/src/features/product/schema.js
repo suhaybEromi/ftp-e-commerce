@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_FILE_SIZE = 8 * 1024 * 1024;
 
 const ACCEPTED_IMAGE_TYPES = [
   "image/jpeg",
@@ -72,7 +72,7 @@ const imageFileSchema = z
     message: "Image file is required",
   })
   .refine(file => file.size <= MAX_FILE_SIZE, {
-    message: "Each image must be less than 5MB",
+    message: "Each image must be less than 8MB",
   })
   .refine(file => ACCEPTED_IMAGE_TYPES.includes(file.type), {
     message:
