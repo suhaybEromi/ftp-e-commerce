@@ -25,39 +25,39 @@ const cookieOptions = {
   path: "/",
 };
 
-const createUser = async (req, res) => {
-  const { name, email, password, role, isActive } = req.validated.body;
+// const createUser = async (req, res) => {
+//   const { name, email, password, role, isActive } = req.validated.body;
 
-  if (!name || !email || !password || !role) {
-    const err = new Error("Name, email, password and role are required");
-    err.statusCode = 400;
-    throw err;
-  }
+//   if (!name || !email || !password || !role) {
+//     const err = new Error("Name, email, password and role are required");
+//     err.statusCode = 400;
+//     throw err;
+//   }
 
-  const user = await User.findOne({ email });
+//   const user = await User.findOne({ email });
 
-  if (user) {
-    const err = new Error("User already exists");
-    err.statusCode = 409;
-    throw err;
-  }
+//   if (user) {
+//     const err = new Error("User already exists");
+//     err.statusCode = 409;
+//     throw err;
+//   }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+//   const hashedPassword = await bcrypt.hash(password, 10);
 
-  const newUser = await User.create({
-    name,
-    email,
-    password: hashedPassword,
-    role,
-    isActive: isActive ?? true,
-  });
+//   const newUser = await User.create({
+//     name,
+//     email,
+//     password: hashedPassword,
+//     role,
+//     isActive: isActive ?? true,
+//   });
 
-  return res.status(201).json({
-    success: true,
-    message: "User created successfully",
-    user: { name: newUser.name, email: newUser.email },
-  });
-};
+//   return res.status(201).json({
+//     success: true,
+//     message: "User created successfully",
+//     user: { name: newUser.name, email: newUser.email },
+//   });
+// };
 
 const login = async (req, res) => {
   const { email, password } = req.validated.body;
@@ -178,7 +178,7 @@ const checkUser = async (req, res) => {
 };
 
 export default {
-  createUser,
+  // createUser,
   login,
   refreshToken,
   logout,

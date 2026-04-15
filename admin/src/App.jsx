@@ -9,7 +9,7 @@ import CollectionPage from "./features/collection/pages/CollectionPage";
 import { Toaster } from "react-hot-toast";
 import NotFound from "./components/form/NotFound";
 import ProductPage from "./features/product/pages/ProductPage";
-import SignupForm from "./features/auth/authLogin/components/SignupForm";
+// import SignupForm from "./features/auth/authLogin/components/SignupForm";
 import LoginForm from "./features/auth/authLogin/components/LoginForm";
 import AuthContextProvider from "./contexts/AuthContext";
 import ProtectedRoute from "./features/auth/authLogin/protect/ProtectedRoute";
@@ -54,11 +54,11 @@ function App() {
             </Route>
           </Route>
 
-          <Route
+          {/* <Route
             element={<RoleProtectedRoute allowedRoles={["super_admin"]} />}
           >
             <Route path="/signup" element={<SignupForm />} />
-          </Route>
+          </Route> */}
 
           <Route element={<PublicRoute />}>
             <Route path="/login" element={<LoginForm />} />

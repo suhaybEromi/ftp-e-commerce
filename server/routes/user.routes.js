@@ -6,11 +6,11 @@ import userController from "../controllers/user.controller.js";
 
 import asyncHandler from "../middlewares/asyncHandler.js";
 import authMiddleware from "../middlewares/auth.js";
-import authorizeRoles from "../middlewares/authorizeRoles.js";
+// import authorizeRoles from "../middlewares/authorizeRoles.js";
 import validate from "../middlewares/validate.js";
 import {
   checkUserSchema,
-  createUserSchema,
+  // createUserSchema,
   loginSchema,
   logoutSchema,
   refreshTokenSchema,
@@ -39,12 +39,12 @@ router.get(
 );
 
 // User management
-router.post(
-  "/create-user",
-  authMiddleware,
-  authorizeRoles("super_admin"),
-  validate(createUserSchema),
-  asyncHandler(userController.createUser),
-);
+// router.post(
+//   "/create-user",
+//   authMiddleware,
+//   authorizeRoles("super_admin"),
+//   validate(createUserSchema),
+//   asyncHandler(userController.createUser),
+// );
 
 export default router;

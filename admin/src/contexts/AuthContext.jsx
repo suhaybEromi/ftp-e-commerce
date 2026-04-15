@@ -1,7 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 import {
   authLogin,
-  authCreateUser,
+  // authCreateUser,
   authLogout,
   authRefreshToken,
   authCheckUser,
@@ -24,14 +24,14 @@ export default function AuthContextProvider({ children }) {
     }
   };
 
-  const signup = async data => {
-    try {
-      setLoading(true);
-      return await authCreateUser(data);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const signup = async data => {
+  //   try {
+  //     setLoading(true);
+  //     return await authCreateUser(data);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const logout = async () => {
     try {
@@ -75,7 +75,7 @@ export default function AuthContextProvider({ children }) {
         user,
         loading,
         login,
-        signup,
+        // signup,
         logout,
         refreshToken,
         checkAuth,

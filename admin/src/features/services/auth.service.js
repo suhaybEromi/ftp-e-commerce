@@ -5,11 +5,11 @@ export const authLogin = async datas => {
   return data;
 };
 
-export const authCreateUser = async datas => {
-  const { data } = await api.post("/user/create-user", datas);
+// export const authCreateUser = async datas => {
+//   const { data } = await api.post("/user/create-user", datas);
 
-  return data;
-};
+//   return data;
+// };
 
 export const authLogout = async () => {
   const data = await api.post("/user/logout");
